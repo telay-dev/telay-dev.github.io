@@ -3,7 +3,6 @@ import { Check, Copy } from "lucide-preact";
 import { t } from "./i18n";
 import DownloadOptions from "./DownloadOptions";
 import { installCommand, startCommand } from "./commands";
-import { appBase, appPath } from "./paths";
 
 export default function QuickInstall() {
   const [method, setMethod] = useState<"wget" | "curl">("wget");
@@ -11,10 +10,10 @@ export default function QuickInstall() {
   const [error, setError] = useState("");
   const [platform, setPlatform] = useState("darwin-arm64");
   const [upstream, setUpstream] = useState("");
-  const site = new URL(appBase, location.origin).href.replace(/\/$/, "");
-  const install = installCommand(site, method);
-  const run = startCommand(upstream);
-  const manualRun = startCommand(upstream, platform);
+  const web = location.origin;
+  const install = installCommand(web, method);
+  const run = startCommand(web, upstream);
+  const manualRun = startCommand(web, upstream, platform);
 
   async function copy(value: string, key: string) {
     try {
@@ -94,7 +93,7 @@ export default function QuickInstall() {
         {t("scriptWarning")}{" "}
         <a
           className="text-link"
-          href={appPath("install.sh")}
+          href="/install.sh"
           target="_blank"
           rel="noreferrer"
         >

@@ -8,7 +8,7 @@ fail() { printf '%s\n' "Install failed: $*" >&2; exit 1; }
 quote() { printf "'"; printf '%s' "$1" | sed "s/'/'\\\\''/g"; printf "'"; }
 usage() {
   printf '%s\n' \
-    'Usage: sh install.sh [--upstream local-URL] [--dir ./telay]' \
+    'Usage: sh install.sh --web https://site-origin [--upstream local-URL] [--dir ./telay]' \
     'Options: --downloader auto|curl|wget (default: auto, prefers curl)' \
     'Supports macOS / Linux amd64 and arm64. Windows users can download the executable manually.' \
     'No sudo required. Existing directories are not overwritten. The connector is not started.'
@@ -36,14 +36,16 @@ digest() {
   esac
 }
 main() {
+  site=''
   install_dir='./telay'
   upstream=''
   downloader=auto
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --upstream|--dir|--downloader)
+      --web|--site|--upstream|--dir|--downloader)
         [ "$#" -ge 2 ] || fail "$1 requires a value"
         case "$1" in
+          --web|--site) site=$2 ;;
           --upstream) upstream=$2 ;;
           --dir) install_dir=$2 ;;
           --downloader) downloader=$2 ;;
@@ -53,7 +55,24 @@ main() {
       *) fail "Unknown option: $1 (use --help for usage)" ;;
     esac
   done
-  protocols='=https'
+  # Trim pasted whitespace around the origin, but reject whitespace inside it.
+  site=$(printf '%s' "$site" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  [ -n "$site" ] || fail '--web must specify the Telay site origin'
+  site=${site%/}
+  # Accept origins only. Production requires HTTPS; HTTP is limited to localhost.
+  case "$site" in
+    https://*) authority=${site#https://}; protocols='=https' ;;
+    http://localhost|http://localhost:*|http://127.0.0.1|http://127.0.0.1:*)
+      authority=${site#http://}; protocols='=http,https' ;;
+    *) fail '--web must be an HTTPS origin (HTTP is allowed for localhost testing)' ;;
+  esac
+  printf '%s\n' "$authority" | awk '
+    /^[A-Za-z0-9.-]+(:[0-9]+)?$/ { valid=1 }
+    END { exit !(NR == 1 && valid) }
+  ' || fail '--web must be an origin without a path, credentials, or query parameters'
+  case "$site" in
+    http://*) case "${authority%%:*}" in localhost|127.0.0.1) : ;; *) fail 'HTTP is allowed only for localhost testing' ;; esac ;;
+  esac
   case "$downloader" in auto|curl|wget) : ;; *) fail '--downloader must be auto, curl, or wget' ;; esac
   if [ "$downloader" = auto ]; then
     if command -v curl >/dev/null 2>&1; then downloader=curl
@@ -111,7 +130,7 @@ main() {
   mkdir "$install_dir" || fail 'Could not create the installation directory; no existing files were changed'
   mv "$work/telay" "$install_dir/telay" || fail "Installation failed; check directory: ${install_dir}"
   printf '\n%s\n' "Installed: $install_dir/telay" 'The connector was not started. Run:'
-  quote "$install_dir/telay"
+  quote "$install_dir/telay"; printf ' --web '; quote "$site"
   if [ -n "$upstream" ]; then printf ' --upstream '; quote "$upstream"; fi
   printf '\n'
   printf '\n%s\n' 'For DSH, add --profile dsh. For a bandwidth probe, add --probe-only. Press Ctrl-C to stop.'

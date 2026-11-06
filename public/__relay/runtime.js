@@ -1,7 +1,4 @@
 (() => {
-  const appBase = new URL("../", document.currentScript.src).pathname;
-  const appPath = (path) => appBase + path.replace(/^\/+/, "");
-  const viewPrefix = appPath("__relay/view");
   const { t } = window.relayI18n;
   const relay = window.tailcatRelay;
   if (!relay) throw new Error(t("relayNotInitialized"));
@@ -45,8 +42,8 @@
       this._queue = Promise.resolve();
       sockets.add(this);
       const path =
-        (u.pathname.startsWith(viewPrefix + "/")
-          ? u.pathname.slice(viewPrefix.length)
+        (u.pathname.startsWith("/__relay/view/")
+          ? u.pathname.slice("/__relay/view".length)
           : u.pathname) + u.search;
       this._id = relay.openSocket(
         path,
@@ -145,8 +142,7 @@
       "position:fixed;bottom:12px;right:12px;z-index:2147483647";
     const root = host.attachShadow({ mode: "open" });
     root.innerHTML =
-      '<style>:host{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#302d29}details{position:relative}summary{list-style:none;cursor:pointer;background:#f7f5f0;border:1px solid #d4cfc5;border-radius:8px;min-height:44px;padding:0 14px;display:flex;align-items:center;box-sizing:border-box}summary::-webkit-details-marker{display:none}.panel{position:absolute;right:0;bottom:54px;width:240px;max-width:calc(100vw - 24px);max-height:calc(100svh - 100px);overflow:auto;box-sizing:border-box;padding:8px;background:#f7f5f0;border:1px solid #d4cfc5;border-radius:12px}button,a{font:inherit;display:block;box-sizing:border-box;min-height:44px;width:100%;padding:12px 10px;color:inherit;text-align:left;border:0;background:transparent;border-radius:6px;cursor:pointer;text-decoration:none}button:hover,a:hover{background:#eeebe4}button:disabled{opacity:.5;cursor:not-allowed}summary:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #a74d35;outline-offset:2px}p{margin:4px 10px 8px;line-height:1.6;color:#6c675f}::selection{background:#e9d1c3;color:#302d29}[hidden]{display:none}</style><details><summary aria-label="">Telay</summary><div class="panel"><p id="route" role="status"></p><button id="full"></button><button id="new-tab"></button><button id="disconnect"></button><a id="reconnect" hidden></a><div id="language-menu"></div></div></details>';
-    root.querySelector("#reconnect").href = appPath("__relay/index.html");
+      '<style>:host{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#302d29}details{position:relative}summary{list-style:none;cursor:pointer;background:#f7f5f0;border:1px solid #d4cfc5;border-radius:8px;min-height:44px;padding:0 14px;display:flex;align-items:center;box-sizing:border-box}summary::-webkit-details-marker{display:none}.panel{position:absolute;right:0;bottom:54px;width:240px;max-width:calc(100vw - 24px);max-height:calc(100svh - 100px);overflow:auto;box-sizing:border-box;padding:8px;background:#f7f5f0;border:1px solid #d4cfc5;border-radius:12px}button,a{font:inherit;display:block;box-sizing:border-box;min-height:44px;width:100%;padding:12px 10px;color:inherit;text-align:left;border:0;background:transparent;border-radius:6px;cursor:pointer;text-decoration:none}button:hover,a:hover{background:#eeebe4}button:disabled{opacity:.5;cursor:not-allowed}summary:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #a74d35;outline-offset:2px}p{margin:4px 10px 8px;line-height:1.6;color:#6c675f}::selection{background:#e9d1c3;color:#302d29}[hidden]{display:none}</style><details><summary aria-label="">Telay</summary><div class="panel"><p id="route" role="status"></p><button id="full"></button><button id="new-tab"></button><button id="disconnect"></button><a id="reconnect" href="/__relay/index.html" hidden></a><div id="language-menu"></div></div></details>';
     const route = root.querySelector("#route");
     const removeLanguageMenu = window.telayLanguageMenu.mount(
       root.querySelector("#language-menu"),
@@ -187,7 +183,7 @@
     newTab.onclick = () => {
       if (!window.relayPairAddress) return;
       window.open(
-        appPath("__relay/index.html#pair=") +
+        "/__relay/index.html#pair=" +
           encodeURIComponent(window.relayPairAddress),
         "_blank",
         "noopener,noreferrer",

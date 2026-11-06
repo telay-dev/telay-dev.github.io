@@ -1,4 +1,4 @@
-import "./relay-runtime/i18n.js";
+import "../public/__relay/i18n.js";
 import { useSyncExternalStore } from "preact/compat";
 
 export type LanguagePreference = "auto" | "zh-CN" | "en" | "ja";

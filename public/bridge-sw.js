@@ -1,7 +1,3 @@
-const appBase = new URL("./", self.location.href).pathname;
-const appPath = (path) => appBase + path.replace(/^\/+/, "");
-const viewPrefix = appPath("__relay/view");
-
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) =>
   event.waitUntil(self.clients.claim()),
@@ -20,17 +16,17 @@ self.addEventListener("fetch", (event) => {
   // Proxy same-origin requests for standalone apps without host-page coordination or persistent Service Worker state.
   if (url.origin !== self.location.origin) return;
   if (
-    url.pathname === appPath("bridge-sw.js") ||
-    url.pathname.startsWith(appPath("tailcat/")) ||
-    (url.pathname.startsWith(appPath("__relay/")) &&
-      !url.pathname.startsWith(viewPrefix + "/"))
+    url.pathname === "/bridge-sw.js" ||
+    url.pathname.startsWith("/tailcat/") ||
+    (url.pathname.startsWith("/__relay/") &&
+      !url.pathname.startsWith("/__relay/view/"))
   )
     return;
   if (
     event.request.mode === "navigate" &&
-    url.pathname.startsWith(viewPrefix + "/")
+    url.pathname.startsWith("/__relay/view/")
   ) {
-    event.respondWith(fetch(appPath("__relay/index.html")));
+    event.respondWith(fetch("/__relay/index.html"));
     return;
   }
   event.respondWith(
@@ -53,7 +49,7 @@ self.addEventListener("fetch", (event) => {
         });
         if (!active) return fetch(event.request);
         if (event.request.mode === "navigate")
-          return fetch(appPath("__relay/index.html"));
+          return fetch("/__relay/index.html");
         const body = ["GET", "HEAD"].includes(event.request.method)
           ? ""
           : encode(new Uint8Array(await event.request.arrayBuffer()));
@@ -77,8 +73,8 @@ self.addEventListener("fetch", (event) => {
           if (event.request.headers.has(key))
             headers[key] = event.request.headers.get(key);
         const path =
-          (url.pathname.startsWith(viewPrefix + "/")
-            ? url.pathname.slice(viewPrefix.length)
+          (url.pathname.startsWith("/__relay/view/")
+            ? url.pathname.slice("/__relay/view".length)
             : url.pathname) + url.search;
         return await self.relayHTTPResponse(event, target, {
           op: "relay-http",
@@ -97,4 +93,4 @@ self.addEventListener("fetch", (event) => {
     })(),
   );
 });
-self.importScripts(appPath("__relay/http-response.js"));
+self.importScripts("/__relay/http-response.js");

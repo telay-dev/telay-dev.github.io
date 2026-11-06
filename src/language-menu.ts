@@ -1,5 +1,5 @@
 import "./i18n";
-import "./relay-runtime/language-menu.js";
+import "../public/__relay/language-menu.js";
 
 declare global {
   interface Window {

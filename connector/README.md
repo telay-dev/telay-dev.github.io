@@ -4,7 +4,7 @@ The connector exposes one configured loopback HTTP service to the paired browser
 
 ```sh
 go build -o telay .
-./telay --upstream http://127.0.0.1:3080/
+./telay --web https://telay.js.org --upstream http://127.0.0.1:3080/
 ```
 
 Omit `--upstream` to enter the URL interactively. See `telay --help` for all options. Keep the printed pairing address private.

@@ -1,5 +1,4 @@
 import CachePolicy from "http-cache-semantics";
-import { appPath } from "./paths";
 
 export type HTTPResult = {
   status: number;
@@ -127,7 +126,7 @@ export class HTTPCache {
       "SHA-256",
       new TextEncoder().encode(JSON.stringify(representationHeaders)),
     );
-    const keyURL = new URL(appPath("__relay/cache-entry" + path), this.origin);
+    const keyURL = new URL("/__relay/cache-entry" + path, this.origin);
     keyURL.searchParams.append(
       "__relay_variant",
       Array.from(new Uint8Array(digest), (byte) =>

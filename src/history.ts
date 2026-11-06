@@ -1,4 +1,4 @@
-import "./relay-runtime/history.js";
+import "../public/__relay/history.js";
 import { useSyncExternalStore } from "preact/compat";
 export type RecentAddress = { address: string; title: string };
 declare global {
