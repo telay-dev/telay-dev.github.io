@@ -33,7 +33,7 @@ function history(saved = "[]", denied = false) {
       storage.delete(key);
     },
   };
-  vm.runInNewContext(read("public/__relay/history.js"), {
+  vm.runInNewContext(read("src/relay-runtime/history.js"), {
     window,
     localStorage,
     Event,

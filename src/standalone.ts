@@ -3,6 +3,7 @@ import { openApplication, viewPrefix } from "./open-application";
 import { connectionError, errorCopy } from "./connection-copy";
 import type { ConnectionError } from "./connection-copy";
 import { t as tr } from "./i18n";
+import { appPath } from "./paths";
 import "./history";
 import "./language-menu";
 
@@ -121,7 +122,7 @@ if (input && button && status && errorText && form) {
       message(status, "openingApp");
       const path = location.pathname.startsWith(viewPrefix + "/")
         ? location.pathname.slice(viewPrefix.length) + location.search
-        : location.pathname === "/__relay/index.html"
+        : location.pathname === appPath("__relay/index.html")
           ? "/"
           : location.pathname + location.search;
       await openApplication(t, path, address);

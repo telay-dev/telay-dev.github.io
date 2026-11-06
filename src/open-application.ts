@@ -1,8 +1,9 @@
 import type { Tunnel } from "./tunnel";
 import { decode } from "./tunnel";
+import { appPath } from "./paths";
 import "./history";
 
-export const viewPrefix = "/__relay/view";
+export const viewPrefix = appPath("__relay/view");
 
 export async function openApplication(
   tunnel: Tunnel,
@@ -35,7 +36,7 @@ export async function openApplication(
   const base = documentCopy.createElement("base");
   base.href = viewPrefix + "/";
   const runtime = documentCopy.createElement("script");
-  runtime.src = "/__relay/runtime.js";
+  runtime.src = appPath("__relay/runtime.js");
   const referrer = documentCopy.createElement("meta");
   referrer.name = "referrer";
   referrer.content = "no-referrer";

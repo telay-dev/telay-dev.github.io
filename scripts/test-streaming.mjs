@@ -38,7 +38,7 @@ const load = (file) => {
 const { receiveHTTP } = load("src/http-stream.ts");
 const { serveHTTPPort } = load("src/http-port.ts");
 const self = {};
-vm.runInNewContext(read("public/__relay/http-response.js"), {
+vm.runInNewContext(read("src/relay-runtime/http-response.js"), {
   self,
   ...globals,
 });

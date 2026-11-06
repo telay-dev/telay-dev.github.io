@@ -9,6 +9,7 @@ import RelayHelp from "./RelayHelp";
 import { t as tr, useLanguage } from "./i18n";
 import LanguageSelect from "./LanguageSelect";
 import RecentAddresses from "./RecentAddresses";
+import { appBase, appPath } from "./paths";
 import "./history";
 
 const bytes = (n: number) =>
@@ -101,7 +102,7 @@ export default function App() {
   function openTab() {
     // The new page pairs independently; transfer the connection only after a click.
     window.open(
-      "/__relay/index.html#pair=" + encodeURIComponent(addr.trim()),
+      appPath("__relay/index.html#pair=" + encodeURIComponent(addr.trim())),
       "_blank",
       "noopener,noreferrer",
     );
@@ -131,7 +132,7 @@ export default function App() {
     <div className="relay-shell">
       <header className="flex items-center justify-between gap-4 px-6 py-7 sm:px-10">
         <a
-          href="/"
+          href={appBase}
           className="text-lg font-medium tracking-tight"
           aria-label={tr("home")}
         >

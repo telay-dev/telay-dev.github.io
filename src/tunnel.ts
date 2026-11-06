@@ -3,6 +3,7 @@ import { deviceCache, HTTPCache } from "./http-cache";
 import { receiveHTTP } from "./http-stream";
 import { activateBridge } from "./bridge";
 import { connectionProgressKey } from "./connection-copy";
+import { appPath } from "./paths";
 type Conn = {
   read(): Promise<Uint8Array | null>;
   write(data: Uint8Array): Promise<void>;
@@ -44,7 +45,7 @@ export function loadTailcat(progress: (s: string) => void) {
     progress("Loading encryption engine (about 8 MB)");
     await new Promise<void>((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = "/tailcat/wasm_exec.js";
+      s.src = appPath("tailcat/wasm_exec.js");
       s.onload = () => resolve();
       s.onerror = () =>
         reject(new Error("Failed to load the encryption runtime script."));
@@ -54,7 +55,9 @@ export function loadTailcat(progress: (s: string) => void) {
       window.onTailcatReady = resolve;
     });
     const go = new window.Go();
-    const resp = await fetch("/tailcat/main.wasm.gz", { cache: "default" });
+    const resp = await fetch(appPath("tailcat/main.wasm.gz"), {
+      cache: "default",
+    });
     if (!resp.ok || !resp.body) throw new Error("WASM download failed.");
     // Some static hosts set Content-Encoding on .gz files, so detect gzip bytes before decompressing.
     let wasm = await resp.arrayBuffer();

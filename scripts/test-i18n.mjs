@@ -7,7 +7,7 @@ import ts from "typescript";
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => readFileSync(path.join(root, file), "utf8");
-const source = read("public/__relay/i18n.js");
+const source = read("src/relay-runtime/i18n.js");
 const dictionaries = vm.runInNewContext(
   "(" +
     source
@@ -291,7 +291,7 @@ const files = [
   "src/LanguageSelect.tsx",
   "src/connection-copy.ts",
   "src/standalone.ts",
-  "public/__relay/runtime.js",
+  "src/relay-runtime/runtime.js",
 ];
 for (const file of files) {
   for (const match of read(file).matchAll(/\b(?:t|tr)\('([^']+)'/g))
@@ -345,7 +345,7 @@ for (const locale of ["en", "zh-CN", "ja"]) {
       return () => {};
     },
   };
-  vm.runInContext(read("public/__relay/runtime.js"), context);
+  vm.runInContext(read("src/relay-runtime/runtime.js"), context);
   assert.ok(mounted, "runtime reuses the shared language menu");
   assert.equal(controls[".language-options"].style.bottom, "100%");
   assert.equal(host.lang, locale);

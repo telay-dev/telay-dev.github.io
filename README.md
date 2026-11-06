@@ -7,7 +7,7 @@ Connect to a local web service from another device through a browser. The Go con
 Download the executable for your operating system and processor from [GitHub Releases](https://github.com/GitaiQAQ/telay/releases/latest), then run it. For example, on an Apple silicon Mac:
 
 ```sh
-./telay-darwin-arm64 --web https://telay.js.org --upstream http://127.0.0.1:3080/
+./telay-darwin-arm64 --upstream http://127.0.0.1:3080/
 ```
 
 Open [telay.js.org](https://telay.js.org) and enter the pairing address printed by the connector. Keep the address private; it grants access to the configured service.

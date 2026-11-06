@@ -1,4 +1,5 @@
 import { serveHTTPPort } from "./http-port";
+import { appBase, appPath } from "./paths";
 import type { Tunnel } from "./tunnel";
 
 declare global {
@@ -15,9 +16,9 @@ export async function activateBridge(tunnel: Tunnel) {
     throw new Error(
       "This browser does not support Service Workers; use a current version of Chrome or Safari.",
     );
-  const scriptURL = new URL("/bridge-sw.js", location.origin).href;
+  const scriptURL = new URL(appPath("bridge-sw.js"), location.origin).href;
   const registration = await navigator.serviceWorker.register(scriptURL, {
-    scope: "/",
+    scope: appBase,
     updateViaCache: "none",
   });
   const worker =
