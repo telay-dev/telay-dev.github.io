@@ -135,7 +135,7 @@ export default function App() {
           className="text-lg font-medium tracking-tight"
           aria-label={tr("home")}
         >
-          Telay
+          <span className="font-bold text-accent">T</span>elay
         </a>
         <LanguageSelect />
       </header>

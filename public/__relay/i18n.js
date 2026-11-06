@@ -126,7 +126,6 @@
       relayNotInitialized: "通用中继连接未初始化",
       appSWUnsupported: "应用自带 Service Worker 暂不支持与中继共用此域名",
       language: "语言",
-      languageAuto: "自动",
     },
     en: {
       pageTitle: "Telay · Connect a device",
@@ -269,7 +268,6 @@
       appSWUnsupported:
         "App Service Workers cannot share this origin with Telay yet",
       language: "Language",
-      languageAuto: "Auto",
     },
     ja: {
       pageTitle: "Telay · デバイスに接続",
@@ -418,7 +416,6 @@
       appSWUnsupported:
         "アプリの Service Worker は Telay と同じオリジンを共有できません",
       language: "言語",
-      languageAuto: "自動",
     },
   };
 
@@ -437,7 +434,7 @@
     const saved = localStorage.getItem(storageKey);
     if (valid(saved)) preference = saved;
   } catch {
-    /* 私密模式仍可在当前页切换 */
+    /* Language selection remains available without storage. */
   }
   const browserLocale = () =>
     selectLocale(
@@ -460,7 +457,7 @@
         if (value === "auto") localStorage.removeItem(storageKey);
         else localStorage.setItem(storageKey, value);
       } catch {
-        /* 不依赖可用存储 */
+        /* Storage is optional. */
       }
     }
     if (changed) for (const listener of listeners) listener();
