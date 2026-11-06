@@ -138,7 +138,7 @@ export default function App() {
           className="text-lg font-medium tracking-tight"
           aria-label={tr("home")}
         >
-          <span className="font-bold text-accent">T</span>elay
+          <span className="brand-mark">T</span>elay
         </a>
         <div className="flex items-center gap-2">
           <a
@@ -161,8 +161,15 @@ export default function App() {
       </header>
       <main className="mx-auto w-full max-w-lg flex-1 px-6 pb-12 pt-10 sm:pt-20">
         <h1 className="hero-heading mb-10">
-          <span>{tr("headingLead")}</span>{" "}
-          <span className="hero-heading-accent">{tr("headingEmphasis")}</span>
+          <span>
+            <span className="hero-heading-accent">{tr("headingLeadHighlight")}</span>
+            {tr("headingLeadRest")}
+          </span>{" "}
+          <span>
+            {tr("headingDetailBefore")}
+            <span className="hero-heading-accent">{tr("headingDetailHighlight")}</span>
+            {tr("headingDetailAfter")}
+          </span>
         </h1>
         <form
           onSubmit={(event) => {
