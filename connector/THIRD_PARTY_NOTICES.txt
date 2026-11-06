@@ -5,14 +5,11 @@ original license texts are included in the same source and license archives.
 
 Tailcat: github.com/tailscale/tailcat, commit e00cdde6ff787f801361ff85ed085775c775d4c5
 Native and browser components incorporate Tailscale and other Go dependencies.
-All corresponding vendored dependency sources and license texts are provided
-in downloads/telay-source.zip on the same trial website. Each binary archive
-also includes THIRD_PARTY_LICENSES.zip with preserved dependency license texts.
-The browser uses the same pinned Tailcat source; its entry source is provided
-in telay-source.zip/browser-source. Frontend components use React (MIT),
-lucide-react (ISC), and Tailwind CSS (MIT); license texts are included in
-THIRD_PARTY_LICENSES.zip. Browser HTTP cache policy uses http-cache-semantics
-(BSD-2-Clause); its original license is included in the same license archive.
+Dependency license texts are published separately in THIRD_PARTY_LICENSES.txt.
+The browser uses the same pinned Tailcat source; its entry source is in
+browser-source. Frontend components use React (MIT), lucide-react (ISC), and
+Tailwind CSS (MIT). Browser HTTP cache policy uses http-cache-semantics
+(BSD-2-Clause). Their license texts are also included in that file.
 No DeepSeek or Tailscale endorsement is implied.
 
 The Apple download icon is from Simple Icons (CC0-1.0):

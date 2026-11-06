@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
+import {createHash} from 'node:crypto';
 
 const exec=promisify(execFile);
 const root=path.resolve(import.meta.dirname,'..');
@@ -20,26 +21,26 @@ await writeFile(path.join(shim,'uname'),'#!/bin/sh\ncase "$1" in -s) printf "%s\
 const env={...process.env,PATH:shim+path.delimiter+process.env.PATH,TEST_OS:'Linux',TEST_ARCH:'x86_64'};
 let mode='normal';
 const requests=[];
+const binary=Buffer.from('#!/bin/sh\nprintf "Telay generic\\n"\n');
+const names=['telay-darwin-amd64','telay-darwin-arm64','telay-linux-amd64','telay-linux-arm64','telay-windows-amd64.exe'];
+const sums=names.map(name=>`${createHash('sha256').update(binary).digest('hex')}  ${name}`).join('\n')+'\n';
 const server=createServer(async(req,res)=>{
   requests.push(req.url);
   try{
     const name=req.url.split('/').pop();
     if(!/^([a-zA-Z0-9_.-]+)$/.test(name))throw new Error('bad path');
     if(mode==='missing'&&name==='SHA256SUMS'){res.writeHead(404);res.end();return}
-    if(mode==='duplicate'&&name==='SHA256SUMS'){
-      const sums=await readFile(path.join(root,'public/downloads/SHA256SUMS'),'utf8');
-      res.end(sums+sums);return;
-    }
-    if(mode==='corrupt'&&name.endsWith('.zip')){res.end('damaged download');return}
+    if(name==='SHA256SUMS'){res.end(mode==='duplicate'?sums+sums:sums);return}
+    if(mode==='corrupt'&&name.startsWith('telay-')){res.end('damaged download');return}
     if(mode==='redirect'&&name==='SHA256SUMS'){res.writeHead(302,{Location:'/redirected'});res.end();return}
-    const data=await readFile(name==='install.sh'?installer:path.join(root,'public/downloads',name));
+    const data=name==='install.sh'?await readFile(installer):binary;
     res.end(data);
   }catch{res.writeHead(404);res.end()}
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const site=`http://127.0.0.1:${server.address().port}`;
 async function install(name,args=[],extraEnv={}){
-  return exec(shell,[installer,'--web',site,'--dir',path.join(temp,name),...args],{env:{...env,...extraEnv},timeout:45000,maxBuffer:1024*1024});
+  return exec(shell,[installer,'--web',site,'--dir',path.join(temp,name),...args],{env:{...env,TELAY_DOWNLOADS:`${site}/downloads`,...extraEnv},timeout:45000,maxBuffer:1024*1024});
 }
 async function rejects(name,args,message,extraEnv={}){
   let failed=false;

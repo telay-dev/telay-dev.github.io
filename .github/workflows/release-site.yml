@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name 'Gitai'
           git config user.email 'i@gitai.me'
-          git add -f public/downloads/*.zip public/downloads/SHA256SUMS
+          git add -f public/downloads/telay-* public/downloads/SHA256SUMS public/downloads/THIRD_PARTY_LICENSES.txt
           git add public/downloads/THIRD_PARTY_NOTICES.txt
           git diff --cached --quiet || git commit -m "chore: update downloadable builds"
           git push

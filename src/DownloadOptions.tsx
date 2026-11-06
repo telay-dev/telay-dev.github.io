@@ -16,6 +16,6 @@ const systems=[
 export default function DownloadOptions({onSelect}:{onSelect:(platform:string)=>void}) {
   return <div className="space-y-1">{systems.map(system=><div key={system.name} className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-1">
     <span className="flex w-24 items-center gap-2 text-muted"><PlatformIcon system={system.name}/>{system.name}</span>
-    {system.variants.map(([label,id,key])=><a key={id} href={downloads+'/telay-'+id+'.zip'} download className="text-link inline-flex min-h-11 items-center" aria-label={t(key)} onClick={()=>onSelect(id)}>{label}</a>)}
+    {system.variants.map(([label,id,key])=><a key={id} href={downloads+'/telay-'+id} download className="text-link inline-flex min-h-11 items-center" aria-label={t(key)} onClick={()=>onSelect(id)}>{label}</a>)}
   </div>)}</div>;
 }

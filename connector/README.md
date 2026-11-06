@@ -4,7 +4,7 @@ The connector exposes one user-selected loopback HTTP service to the paired brow
 
 ## Run
 
-Download the archive for your operating system or build from source with Go 1.27.2+:
+Download the executable for your operating system or build from source with Go 1.27.2+:
 
 ```sh
 go build -o telay .
@@ -28,4 +28,4 @@ The static site can also be hosted from any HTTPS origin; set `--web` to that or
 
 The connector only reaches the configured loopback service. It does not proxy other LAN hosts, cloud APIs, or arbitrary TCP. It keeps upstream authentication in a local cookie jar and does not return upstream cookies to the browser. Request paths cannot change host or traverse directories. Writes are not replayed after disconnect. The pairing address grants device access, so use it only with trusted devices and pages.
 
-Third-party license details are in `THIRD_PARTY_NOTICES.txt` and `THIRD_PARTY_LICENSES.zip` in release archives.
+Third-party license details are in `THIRD_PARTY_NOTICES.txt`; complete license texts are published as a separate download.

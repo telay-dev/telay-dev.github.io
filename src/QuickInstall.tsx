@@ -62,6 +62,7 @@ export default function QuickInstall() {
       {command(manualRun, 'manual', t('copyManualRun'))}
       <p className="mt-3 text-muted">{t('unsignedWarning')}</p>
       <a className="text-link mt-3 inline-block" href="https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads/SHA256SUMS">{t('checksums')}</a>
+      <a className="text-link ml-4 mt-3 inline-block" href="https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads/THIRD_PARTY_LICENSES.txt">{t('licenses')}</a>
     </details>
   </div>;
 }

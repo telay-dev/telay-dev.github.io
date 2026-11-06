@@ -8,15 +8,14 @@ fail() { printf '%s\n' "安装失败：$*" >&2; exit 1; }
 quote() { printf "'"; printf '%s' "$1" | sed "s/'/'\\\\''/g"; printf "'"; }
 usage() {
   printf '%s\n' \
-    '用法：sh install.sh --web https://连接网站 [--upstream 本机URL] [--dir ./telay]' \
-    '选项：--downloader auto|curl|wget（默认 auto，优先 curl）' \
-    '支持 macOS / Linux 的 amd64 / arm64；Windows 请下载 ZIP。' \
+    'Usage: sh install.sh --web https://site-origin [--upstream local-URL] [--dir ./telay]' \
+    'Options: --downloader auto|curl|wget (default: auto, prefers curl)' \
+    'Supports macOS / Linux amd64 and arm64. Download the Windows executable directly.' \
     '不使用 sudo，不覆盖已有目录，不自动运行连接器。'
 }
 cleanup() {
   # 仅清理本次 mktemp 创建的已知文件，绝不递归删除安装目录。
-  rm -f "$work/archive.zip" "$work/SHA256SUMS" "$work/telay" \
-    "$work/README.md" "$work/THIRD_PARTY_NOTICES.txt" "$work/THIRD_PARTY_LICENSES.zip"
+  rm -f "$work/SHA256SUMS" "$work/telay"
   rmdir "$work" 2>/dev/null || :
 }
 download() {
@@ -79,7 +78,6 @@ main() {
     else fail '需要 curl 或 wget，请安装后重试'; fi
   fi
   command -v "$downloader" >/dev/null 2>&1 || fail "缺少 $downloader"
-  command -v unzip >/dev/null 2>&1 || fail '需要 unzip，请安装后重试'
   if command -v sha256sum >/dev/null 2>&1; then checksum_tool=sha256sum
   elif command -v shasum >/dev/null 2>&1; then checksum_tool=shasum
   elif command -v openssl >/dev/null 2>&1; then checksum_tool=openssl
@@ -110,32 +108,26 @@ main() {
   trap 'exit 130' INT
   trap 'exit 143' TERM HUP
   binary="telay-${os}-${arch}"
-  archive="${binary}.zip"
+  [ "$os" != windows ] || binary="${binary}.exe"
   # 显式划定变量边界，避免旧 shell 将相邻 UTF-8 标点误识别为变量名。
   printf '%s\n' "识别平台：${os} / ${arch}；正在使用 ${downloader} 下载…"
-  downloads='https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads'
+  downloads=${TELAY_DOWNLOADS:-https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads}
   download "$downloads/SHA256SUMS" "$work/SHA256SUMS" || fail '校验清单下载失败；未安装'
-  expected=$(awk -v name="$archive" '
+  expected=$(awk -v name="$binary" '
     $2 == name { count++; hash=tolower($1) }
     END {
       if (count != 1 || length(hash) != 64 || hash ~ /[^0-9a-f]/) exit 1
       print hash
     }
   ' "$work/SHA256SUMS") || fail '校验清单缺少有效且唯一的平台 SHA-256'
-  download "$downloads/$archive" "$work/archive.zip" || fail '连接器下载失败；未安装'
-  actual=$(digest "$work/archive.zip") || fail '无法计算 SHA-256；未安装'
-  [ "$actual" = "$expected" ] || fail 'SHA-256 不一致，拒绝解压；请检查下载来源后重试'
+  download "$downloads/$binary" "$work/telay" || fail '连接器下载失败；未安装'
+  actual=$(digest "$work/telay") || fail '无法计算 SHA-256；未安装'
+  [ "$actual" = "$expected" ] || fail 'SHA-256 不一致，拒绝安装；请检查下载来源后重试'
   printf '%s\n' 'SHA-256 校验通过（完整性校验，不是独立发行签名）。'
-  unzip -p "$work/archive.zip" "$binary" > "$work/telay" || fail '无法提取连接器'
   [ -s "$work/telay" ] || fail '连接器文件为空'
-  for item in README.md THIRD_PARTY_NOTICES.txt THIRD_PARTY_LICENSES.zip; do
-    unzip -p "$work/archive.zip" "$item" > "$work/$item" || fail "无法提取 $item"
-  done
   chmod 700 "$work/telay"
   mkdir "$install_dir" || fail '无法创建安装目录；未覆盖已有文件'
-  for item in telay README.md THIRD_PARTY_NOTICES.txt THIRD_PARTY_LICENSES.zip; do
-    mv "$work/$item" "$install_dir/$item" || fail "写入失败；部分文件可能已在 ${install_dir}，请检查"
-  done
+  mv "$work/telay" "$install_dir/telay" || fail "安装失败；请检查目录：${install_dir}"
   printf '\n%s\n' "安装完成：$install_dir/telay" '未启动连接器。终端运行：'
   quote "$install_dir/telay"; printf ' --web '; quote "$site"
   if [ -n "$upstream" ]; then printf ' --upstream '; quote "$upstream"; fi

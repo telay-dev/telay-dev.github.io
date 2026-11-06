@@ -19,13 +19,13 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 	var legacyWeb string
 	fs := flag.NewFlagSet("telay", flag.ContinueOnError)
 	fs.SetOutput(output)
-	fs.StringVar(&o.Upstream, "upstream", "", "本机 HTTP 服务 URL")
-	fs.StringVar(&o.Web, "web", "", "连接网站 URL")
-	fs.StringVar(&legacyWeb, "site", "", "旧参数兼容")
-	fs.StringVar(&o.Profile, "profile", "generic", "generic 或 dsh")
-	fs.BoolVar(&o.Probe, "probe-only", false, "仅测速")
+	fs.StringVar(&o.Upstream, "upstream", "", "local HTTP service URL")
+	fs.StringVar(&o.Web, "web", "", "Telay site origin")
+	fs.StringVar(&legacyWeb, "site", "", "deprecated alias for --web")
+	fs.StringVar(&o.Profile, "profile", "generic", "generic or dsh")
+	fs.BoolVar(&o.Probe, "probe-only", false, "run a bandwidth test only")
 	fs.Usage = func() {
-		fmt.Fprintln(output, "Telay\n\n用法：telay --web https://连接网站 --upstream 'http://127.0.0.1:3080/?token=…'\n\n  --web URL            连接网站\n  --upstream URL       本机 HTTP 服务的完整 URL；省略时提示输入\n  --profile generic|dsh  接入模式，默认 generic\n  --probe-only         仅测速\n  -h, --help           帮助")
+		fmt.Fprintln(output, "Telay\n\nUsage: telay --web https://telay.js.org --upstream 'http://127.0.0.1:3080/'\n\n  --web URL              Telay site origin\n  --upstream URL         Local HTTP service URL; prompt if omitted\n  --profile generic|dsh  Integration profile (default: generic)\n  --probe-only           Run a bandwidth test only\n  -h, --help             Show help\n\nThird-party license texts:\nhttps://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads/THIRD_PARTY_LICENSES.txt")
 	}
 	if err := fs.Parse(args); err != nil {
 		return o, err

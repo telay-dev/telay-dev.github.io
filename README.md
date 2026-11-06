@@ -12,7 +12,7 @@ pnpm dev
 pnpm build
 ```
 
-Build connector archives and the static site with:
+Build platform executables and the static site with:
 
 ```sh
 cd connector && go mod vendor && cd ..
@@ -31,10 +31,10 @@ Start the connector with a site origin and a local service URL:
 
 ## Releases and hosting
 
-Pushing to `main` builds macOS, Linux, and Windows connector archives, publishes checksum-verified downloads, and deploys the static site to GitHub Pages. The site uses `public/CNAME` for `telay.js.org`. Enable GitHub Pages with GitHub Actions in repository settings. Request the `telay.js.org` subdomain through [JS.ORG](https://github.com/js-org/js.org).
+Pushing to `main` builds macOS, Linux, and Windows executables, publishes checksum-verified downloads and third-party license texts, and deploys the static site to GitHub Pages. The site uses `public/CNAME` for `telay.js.org`. Enable GitHub Pages with GitHub Actions in repository settings. Request the `telay.js.org` subdomain through [JS.ORG](https://github.com/js-org/js.org).
 
 The interface supports English, Simplified Chinese, and Japanese. Strings are maintained in `public/__relay/i18n.js`.
 
 ## Licensing
 
-Telay is licensed under MIT. Third-party notices and license texts are included in connector distributions; see `connector/THIRD_PARTY_NOTICES.txt` and the generated `THIRD_PARTY_LICENSES.zip`.
+Telay is licensed under MIT. Third-party notices and license texts are published as standalone text files in `public/downloads`.
