@@ -1,0 +1,25 @@
+# Telay
+
+> Telay connects a browser on another device to a local web service through a Connector running on the service owner's machine.
+
+Telay is an open-source browser-based access tool. The website is the browser client; a Connector runs on the machine that can reach the local service and forwards requests only to the upstream URL configured by its operator. The Connector supports HTTP, WebSocket, and server-sent events. It uses WebRTC when possible and a DERP relay otherwise.
+
+Start the Connector with Node.js 18 or newer:
+
+```sh
+npx telay-cli --web https://telay.js.org --upstream http://127.0.0.1:3080/
+```
+
+Then open https://telay.js.org and enter the pairing address printed by the Connector. Treat that address as a secret: it grants access to the configured service. Do not include it in public prompts, logs, or issue reports.
+
+## Documentation
+
+- [Project README](https://raw.githubusercontent.com/telay-dev/telay-dev.github.io/main/README.md): Overview, quick start, development, and release process.
+- [Connector README](https://raw.githubusercontent.com/telay-dev/telay-dev.github.io/main/connector/README.md): Connector behavior, command usage, and build instructions.
+- [npm package](https://www.npmjs.com/package/telay-cli): Installable CLI package.
+- [Source repository](https://github.com/telay-dev/telay-dev.github.io): Website and Connector source code.
+
+## Optional
+
+- [GitHub Releases](https://github.com/telay-dev/telay-dev.github.io/releases/latest): Prebuilt binaries, checksums, and third-party license files.
+- [Install script](https://telay.js.org/install.sh): Shell installer for macOS and Linux; verifies downloaded binary checksums.
