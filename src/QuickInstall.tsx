@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { Check, Copy } from "lucide-preact";
 import { t } from "./i18n";
 import DownloadOptions from "./DownloadOptions";
-import { installCommand, startCommand } from "./commands";
+import { installCommand, npmStartCommand, startCommand } from "./commands";
 
 export default function QuickInstall() {
   const [method, setMethod] = useState<"wget" | "curl">("curl");
@@ -12,7 +12,7 @@ export default function QuickInstall() {
   const [upstream, setUpstream] = useState("");
   const web = location.origin;
   const install = installCommand(web, method);
-  const run = startCommand(web, upstream);
+  const run = npmStartCommand(web, upstream);
   const manualRun = startCommand(web, upstream, platform);
 
   async function copy(value: string, key: string) {
@@ -63,6 +63,30 @@ export default function QuickInstall() {
 
   return (
     <div className="pb-4 pt-1 text-sm leading-6">
+      <p>{t("npmRunIntro")}</p>
+      <form onSubmit={(event) => event.preventDefault()} autoComplete="off">
+        <label htmlFor="npm-local-service" className="mb-2 mt-3 block text-xs text-muted">
+          {t("upstreamLabel")}
+        </label>
+        <input
+          id="npm-local-service"
+          className="field w-full font-mono"
+          type="password"
+          autoComplete="off"
+          spellcheck={false}
+          value={upstream}
+          placeholder={t("upstreamPlaceholder")}
+          aria-describedby="local-service-hint"
+          onChange={(event) => {
+            setUpstream(event.currentTarget.value);
+            setCopied("");
+          }}
+        />
+      </form>
+      {command(run, "run", t("copyRun"))}
+      <p id="local-service-hint" className="mt-3 text-xs text-muted">{t(upstream.trim() ? "runDirectHint" : "runHint")}</p>
+      <details className="mt-5">
+        <summary className="py-3 text-muted">{t("otherMethods")}</summary>
       <div className="flex items-center justify-between gap-4">
         <p>{t("installTerminal")}</p>
         <div className="flex gap-1" role="group" aria-label={t("installTools")}>
@@ -101,32 +125,8 @@ export default function QuickInstall() {
         </a>
       </p>
       <p className="mt-6">{t("runAfterInstall")}</p>
-      <form onSubmit={(event) => event.preventDefault()} autoComplete="off">
-        <label
-          htmlFor="local-service"
-          className="mb-2 mt-3 block text-xs text-muted"
-        >
-          {t("upstreamLabel")}
-        </label>
-        <input
-          id="local-service"
-          className="field w-full font-mono"
-          type="password"
-          autoComplete="off"
-          spellcheck={false}
-          value={upstream}
-          placeholder={t("upstreamPlaceholder")}
-          onChange={(event) => {
-            setUpstream(event.currentTarget.value);
-            setCopied("");
-          }}
-          aria-describedby="local-service-hint"
-        />
-      </form>
-      {command(run, "run", t("copyRun"))}
-      <p id="local-service-hint" className="mt-3 text-xs leading-5 text-muted">
-        {t(upstream.trim() ? "runDirectHint" : "runHint")}
-      </p>
+      {command(startCommand(web, upstream), "shell-run", t("copyRun"))}
+      </details>
       <p
         role="status"
         className={"mt-2 text-xs " + (error ? "text-danger" : "text-muted")}

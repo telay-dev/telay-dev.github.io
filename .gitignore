@@ -5,3 +5,5 @@ dist/
 connector/dsh-remote
 connector/vendor/
 release/
+.npmrc
+npm-dist/

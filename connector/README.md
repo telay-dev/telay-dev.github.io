@@ -2,6 +2,10 @@
 
 The connector exposes one configured loopback HTTP service to the paired browser. It is not an open proxy. It keeps upstream authentication local and does not return upstream cookies to the browser.
 
+Run the published connector with `npx telay-cli --web https://telay.js.org --upstream http://127.0.0.1:3080/`.
+
+To build from source:
+
 ```sh
 go build -o telay .
 ./telay --web https://telay.js.org --upstream http://127.0.0.1:3080/

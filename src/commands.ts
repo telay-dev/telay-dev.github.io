@@ -3,6 +3,14 @@ export const shellQuote = (value: string) =>
 const powerShellQuote = (value: string) =>
   "'" + value.replaceAll("'", "''") + "'";
 
+export function npmStartCommand(web: string, upstream = "") {
+  return (
+    "npx --yes telay-cli --web " +
+    shellQuote(web) +
+    (upstream.trim() ? " --upstream " + shellQuote(upstream.trim()) : "")
+  );
+}
+
 export function installCommand(web: string, method: "wget" | "curl") {
   const download = method === "wget" ? "wget -qO- " : "curl -fsSL ";
   return (

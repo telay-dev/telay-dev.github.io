@@ -1,0 +1,77 @@
+name: Publish npm packages
+
+on:
+  push:
+    tags: ["npm-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache-dependency-path: connector/go.sum
+      - run: pnpm install --frozen-lockfile
+      - name: Check tag matches package version
+        if: github.event_name == 'push'
+        run: test "$GITHUB_REF_NAME" = "npm-v$(node -p "require('./npm/telay/package.json').version")"
+      - run: go test ./...
+        working-directory: connector
+      - run: pnpm release
+      - run: pnpm package:npm
+      - name: Verify packed CLI
+        run: |
+          dir="$(mktemp -d)"
+          npm pack ./npm-dist/telay --pack-destination "$dir" --json > /dev/null
+          npm pack ./npm-dist/linux-x64 --pack-destination "$dir" --json > /dev/null
+          printf '{"name":"telay-smoke","version":"1.0.0","private":true}\n' > "$dir/package.json"
+          version="$(node -p "require('./npm/telay/package.json').version")"
+          npm install --prefix "$dir" --ignore-scripts --no-audit --no-fund "$dir/telay-cli-$version.tgz" "$dir/telay-dev-linux-x64-$version.tgz"
+          "$dir/node_modules/.bin/telay" --version
+          "$dir/node_modules/.bin/telay" --help
+      - name: Publish platform packages
+        run: |
+          for package in darwin-x64 darwin-arm64 linux-x64 linux-arm64 win32-x64; do
+            npm publish "./npm-dist/$package" --registry=https://registry.npmjs.org/ --access public --provenance
+          done
+      - name: Wait for platform versions
+        run: |
+          version="$(node -p "require('./npm/telay/package.json').version")"
+          for package in darwin-x64 darwin-arm64 linux-x64 linux-arm64 win32-x64; do
+            available=false
+            for attempt in $(seq 1 30); do
+              if npm view "@telay-dev/$package@$version" version --prefer-online --registry=https://registry.npmjs.org/ > /dev/null 2>&1; then available=true; break; fi
+              sleep 10
+            done
+            test "$available" = true || { echo "Timed out waiting for @telay-dev/$package@$version"; exit 1; }
+          done
+      - name: Publish CLI
+        run: npm publish ./npm-dist/telay --registry=https://registry.npmjs.org/ --access public --provenance
+      - name: Verify published CLI
+        run: |
+          version="$(node -p "require('./npm/telay/package.json').version")"
+          available=false
+          for attempt in $(seq 1 30); do
+            if npm view "telay-cli@$version" version --prefer-online --registry=https://registry.npmjs.org/ > /dev/null 2>&1; then available=true; break; fi
+            sleep 10
+          done
+          test "$available" = true || { echo "Timed out waiting for telay-cli@$version"; exit 1; }
+          npx --yes --prefer-online "telay-cli@$version" --version
+          npx --yes --prefer-online "telay-cli@$version" --help
