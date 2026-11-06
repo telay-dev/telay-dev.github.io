@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -36,6 +37,20 @@ func readFrame(t *testing.T, decoder *json.Decoder) Frame {
 		t.Fatal(err)
 	}
 	return f
+}
+
+func TestPingReportsHostname(t *testing.T) {
+	encoder, decoder, _ := testBridge(t, func(http.ResponseWriter, *http.Request) {})
+	if err := encoder.Encode(Frame{ID: 1, Op: "ping"}); err != nil {
+		t.Fatal(err)
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pong := readFrame(t, decoder); pong.Op != "pong" || pong.Hostname != hostname {
+		t.Fatalf("unexpected hostname in pong: %+v", pong)
+	}
 }
 
 func TestSSEStreamingCancellationAndParallelHTTP(t *testing.T) {

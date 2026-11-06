@@ -26,6 +26,7 @@ type Frame = {
   sdp?: string;
   stream?: boolean;
   capabilities?: string[];
+  hostname?: string;
 };
 declare global {
   interface Window {
@@ -101,6 +102,7 @@ export class Tunnel {
   private relayConn?: Conn;
   private streaming = false;
   transport: "relay" | "direct" = "relay";
+  hostname = "";
   onTransport?: () => void;
   private next = 1;
   private queue = Promise.resolve();
@@ -125,6 +127,7 @@ export class Tunnel {
     this.relayConn = this.conn;
     void this.readLoop(this.conn);
     const hello = await this.request({ op: "ping" });
+    this.hostname = hello.hostname || "";
     this.streaming = !!hello.capabilities?.includes("http-stream-v1");
     this.cache = hello.capabilities?.includes("http-cache-v1")
       ? await deviceCache(addr)

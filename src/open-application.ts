@@ -29,7 +29,6 @@ export async function openApplication(
     new TextDecoder().decode(decode(data.body)),
     "text/html",
   );
-  if (pairAddress) window.relayHistory.save(pairAddress, documentCopy.title);
   documentCopy.querySelectorAll("base").forEach((element) => element.remove());
 
   const base = documentCopy.createElement("base");

@@ -38,7 +38,7 @@ if (input && button && status && errorText && form) {
       ...window.relayHistory.entries.map(
         (item) =>
           new Option(
-            (item.title || tr("device")) + " · …" + item.address.slice(-6),
+            item.title || tr("device") + " · …" + item.address.slice(-6),
             item.address,
           ),
       ),
@@ -117,7 +117,7 @@ if (input && button && status && errorText && form) {
     const t = new Tunnel();
     try {
       await connectTunnel(t, address, (key) => message(status, key));
-      window.relayHistory.save(address);
+      window.relayHistory.save(address, t.hostname);
       message(status, "openingApp");
       const path = location.pathname.startsWith(viewPrefix + "/")
         ? location.pathname.slice(viewPrefix.length) + location.search

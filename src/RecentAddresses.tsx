@@ -26,7 +26,7 @@ export default function RecentAddresses({
           <option value="">{t("recentAddresses")}</option>
           {entries.map((item) => (
             <option key={item.address} value={item.address}>
-              {item.title || t("device")} · …{item.address.slice(-6)}
+              {item.title || `${t("device")} · …${item.address.slice(-6)}`}
             </option>
           ))}
         </select>

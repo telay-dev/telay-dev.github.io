@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -38,6 +39,7 @@ type Frame struct {
 	SDP          string            `json:"sdp,omitempty"`
 	Stream       bool              `json:"stream,omitempty"`
 	Capabilities []string          `json:"capabilities,omitempty"`
+	Hostname     string            `json:"hostname,omitempty"`
 }
 type Bridge struct {
 	upstream *url.URL
@@ -48,6 +50,7 @@ type Bridge struct {
 }
 
 func (b *Bridge) Serve(c net.Conn) {
+	hostname, _ := os.Hostname()
 	defer c.Close()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -108,7 +111,7 @@ func (b *Bridge) Serve(c net.Conn) {
 				send(Frame{ID: f.ID, Op: "result", SDP: answer})
 			}
 		case "ping":
-			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1"}})
+			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1"}, Hostname: hostname})
 		case "probe":
 			if f.Size < 1 || f.Size > 1<<20 {
 				send(Frame{ID: f.ID, Op: "result", Error: "bandwidth probes are limited to 1 MiB per request"})

@@ -69,7 +69,7 @@ export default function App() {
     };
     try {
       await connectTunnel(t, value, setStatus);
-      window.relayHistory.save(value);
+      window.relayHistory.save(value, t.hostname);
       setRtt(await t.ping());
       setRoute(t.transport);
       setPhase("connected");
