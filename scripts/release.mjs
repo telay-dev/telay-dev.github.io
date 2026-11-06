@@ -20,8 +20,6 @@ await Promise.all([['darwin','amd64'],['darwin','arm64'],['linux','amd64'],['lin
 
 mkdirSync(output,{recursive:true});
 for(const name of binaries)copyFileSync(path.join(root,'release',name),path.join(output,name));
-copyFileSync(path.join(connector,'THIRD_PARTY_NOTICES.txt'),path.join(output,'THIRD_PARTY_NOTICES.txt'));
-
 const licenses=[];
 function collect(directory,base=directory){
   for(const item of readdirSync(directory,{withFileTypes:true})){

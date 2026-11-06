@@ -16,4 +16,4 @@ go test -race ./...
 GOOS=linux GOARCH=arm64 go build -o telay .
 ```
 
-Third-party notices are in `THIRD_PARTY_NOTICES.txt`; complete license texts are published in `public/downloads/THIRD_PARTY_LICENSES.txt`.
+Third-party notices and license texts are published in `../public/downloads/`.
