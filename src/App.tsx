@@ -73,6 +73,7 @@ export default function App() {
       setRtt(await t.ping());
       setRoute(t.transport);
       setPhase("connected");
+      void measure(t, true);
     } catch (err) {
       t.close();
       setPhase("idle");
@@ -109,21 +110,23 @@ export default function App() {
     setStatus("newTabHint");
   }
 
-  async function measure() {
+  async function measure(t = tunnel.current, automatic = false) {
+    if (!t) return;
     setMeasuring(true);
-    setError(undefined);
+    if (!automatic) setError(undefined);
     try {
-      const t = tunnel.current;
-      if (!t) throw new Error("Connection closed.");
       const values = [];
       for (let i = 0; i < 3; i++) values.push(await t.ping());
       values.sort((a, b) => a - b);
-      setRtt(values[1]);
-      setSpeed((await t.probe()).mbps);
+      const result = await t.probe();
+      if (tunnel.current === t) {
+        setRtt(values[1]);
+        setSpeed(result.mbps);
+      }
     } catch (err) {
-      setError(connectionError(err));
+      if (!automatic && tunnel.current === t) setError(connectionError(err));
     } finally {
-      setMeasuring(false);
+      if (tunnel.current === t) setMeasuring(false);
     }
   }
 
@@ -221,6 +224,9 @@ export default function App() {
             {phase === "connected"
               ? tr(route === "direct" ? "connectedDirect" : "connectedRelay")
               : tr(status)}
+            {phase === "connected" && (measuring || speed !== undefined)
+              ? ` · ${measuring ? tr("measuring") : `${tr("downloadSpeed")} ${speed} Mbps`}`
+              : null}
           </p>
           {phase === "connected" && (
             <details className="action-menu relative shrink-0">
@@ -264,7 +270,7 @@ export default function App() {
                     id="measure"
                     type="button"
                     className="quiet-button mb-2"
-                    onClick={measure}
+                    onClick={() => void measure()}
                     disabled={measuring || opening}
                   >
                     {tr(measuring ? "measuring" : "measure")}
