@@ -140,7 +140,12 @@ export default function App() {
         >
           <span className="font-bold text-accent">T</span>elay
         </a>
-        <LanguageSelect />
+        <div className="flex items-center gap-2">
+          <a className="quiet-button text-xs" href="https://github.com/telay-dev/telay-dev.github.io">
+            GitHub
+          </a>
+          <LanguageSelect />
+        </div>
       </header>
       <main className="mx-auto w-full max-w-lg flex-1 px-6 pb-12 pt-10 sm:pt-20">
         <h1 className="mb-10 text-3xl font-medium tracking-tight">
