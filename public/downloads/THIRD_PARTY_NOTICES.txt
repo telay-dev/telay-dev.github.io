@@ -9,7 +9,7 @@ All corresponding vendored dependency sources and license texts are provided
 in telay-source.zip. Each binary archive
 also includes THIRD_PARTY_LICENSES.zip with preserved dependency license texts.
 The browser uses the same pinned Tailcat source; its entry source is provided
-in telay-source.zip/browser-source. Frontend components use React (MIT),
+in connector/browser. Frontend components use React (MIT),
 lucide-react (ISC), and Tailwind CSS (MIT); license texts are included in
 THIRD_PARTY_LICENSES.zip. Browser HTTP cache policy uses http-cache-semantics
 (BSD-2-Clause); its original license is included in the same license archive.
