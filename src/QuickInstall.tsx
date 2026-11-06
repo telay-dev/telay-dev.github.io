@@ -5,7 +5,7 @@ import DownloadOptions from "./DownloadOptions";
 import { installCommand, startCommand } from "./commands";
 
 export default function QuickInstall() {
-  const [method, setMethod] = useState<"wget" | "curl">("wget");
+  const [method, setMethod] = useState<"wget" | "curl">("curl");
   const [copied, setCopied] = useState("");
   const [error, setError] = useState("");
   const [platform, setPlatform] = useState("darwin-arm64");
@@ -66,7 +66,7 @@ export default function QuickInstall() {
       <div className="flex items-center justify-between gap-4">
         <p>{t("installTerminal")}</p>
         <div className="flex gap-1" role="group" aria-label={t("installTools")}>
-          {(["wget", "curl"] as const).map((value) => (
+          {(["curl", "wget"] as const).map((value) => (
             <button
               key={value}
               type="button"

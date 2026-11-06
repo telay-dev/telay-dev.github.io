@@ -17,7 +17,7 @@ export function startCommand(web: string, upstream = "", platform?: string) {
   const quote = windows ? powerShellQuote : shellQuote;
   const binary = platform
     ? (windows ? ".\\" : "./") + "telay-" + platform
-    : "./telay/telay";
+    : '"$HOME/.local/bin/telay"';
   return (
     binary +
     " --web " +
