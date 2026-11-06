@@ -2,9 +2,9 @@
 (() => {
   const messages = {
     "zh-CN": {
-      pageTitle: "Telay · 连接设备",
+      pageTitle: "Telay · 安全访问本地 Web 服务",
       home: "Telay 首页",
-      heading: "连接设备",
+      heading: "安全访问本地 Web 服务",
       pairLabel: "配对地址",
       pairPlaceholder: "粘贴设备端输出的 tc… 地址",
       pairHint: "配对地址相当于访问密码，请勿分享。",
@@ -128,9 +128,9 @@
       language: "语言",
     },
     en: {
-      pageTitle: "Telay · Connect a device",
+      pageTitle: "Telay · Securely access your local web server",
       home: "Telay home",
-      heading: "Connect a device",
+      heading: "Securely access your local web server",
       pairLabel: "Pairing address",
       pairPlaceholder: "Paste your device’s tc… address",
       pairHint: "This address grants access to your device. Keep it private.",
@@ -270,9 +270,9 @@
       language: "Language",
     },
     ja: {
-      pageTitle: "Telay · デバイスに接続",
+      pageTitle: "Telay · ローカル Web サーバーに安全にアクセス",
       home: "Telay ホーム",
-      heading: "デバイスに接続",
+      heading: "ローカル Web サーバーに安全にアクセス",
       pairLabel: "ペアリングアドレス",
       pairPlaceholder: "デバイスの tc… アドレスを貼り付け",
       pairHint:
