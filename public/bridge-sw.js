@@ -30,4 +30,4 @@ self.addEventListener('fetch',event=>{
     }catch(err){return new Response('Telay: '+err.message,{status:502,headers:{'Content-Type':'text/plain;charset=utf-8'}})}
   })());
 });
-self.importScripts('/__relay/http-response.js?v='+new URL(self.location.href).searchParams.get('v'));
+self.importScripts('/__relay/http-response.js');

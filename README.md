@@ -2,7 +2,7 @@
 
 Telay connects a browser to a user-selected local HTTP service through a small Go connector. It supports HTTP, WebSocket, and server-sent events, prefers a WebRTC local connection, and falls back to a public DERP relay. It does not modify the upstream application.
 
-The browser WebAssembly entry is kept beside the connector in `connector/browser`; Vite's `/__relay/index.html` entry remains separate so its public URL stays stable.
+The browser WebAssembly entry is kept beside the connector in `connector/browser`. The standalone page stays at `/__relay/index.html` because that URL is used by the service worker and connection flow.
 
 ## Development
 

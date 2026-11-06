@@ -9,18 +9,16 @@ declare global {
   interface Window { tailcatDial(opts:object):Promise<Conn>; Go:new()=>{importObject:WebAssembly.Imports;run(instance:WebAssembly.Instance):Promise<void>}; onTailcatReady?:()=>void; tailcatRelay?:Tunnel; relayHTTPBound?:boolean; relayApplication?:boolean }
 }
 let boot:Promise<void>|undefined;
-declare const __RELAY_ENGINE_PATH__:string;
-declare const __RELAY_BRIDGE_VERSION__:string;
 export function loadTailcat(progress:(s:string)=>void) {
   if (boot) return boot;
   boot = (async()=>{
     progress('正在加载加密引擎（约 6.3 MB）');
     await new Promise<void>((resolve,reject)=>{
-      const s=document.createElement('script');s.src=__RELAY_ENGINE_PATH__+'/wasm_exec.js';s.onload=()=>resolve();s.onerror=()=>reject(new Error('加密引擎脚本加载失败'));document.head.append(s);
+      const s=document.createElement('script');s.src='/tailcat/wasm_exec.js';s.onload=()=>resolve();s.onerror=()=>reject(new Error('加密引擎脚本加载失败'));document.head.append(s);
     });
     const ready=new Promise<void>(resolve=>{window.onTailcatReady=resolve});
     const go=new window.Go();
-    const resp=await fetch(__RELAY_ENGINE_PATH__+'/main.wasm.gz',{cache:'default'});
+    const resp=await fetch('/tailcat/main.wasm.gz',{cache:'default'});
     if(!resp.ok||!resp.body) throw new Error('WASM 下载失败');
     // 有些静态主机会给 .gz 设置 Content-Encoding，浏览器已自动解压；按魔数识别，避免二次解压。
     let wasm=await resp.arrayBuffer();
@@ -158,7 +156,7 @@ export class Tunnel {
 export async function activateBridge(tunnel:Tunnel) {
   window.tailcatRelay=tunnel;
   if(!('serviceWorker'in navigator)) throw new Error('浏览器不支持 Service Worker，请使用新版 Chrome 或 Safari');
-  const scriptURL=new URL('/bridge-sw.js?v='+__RELAY_BRIDGE_VERSION__,location.origin).href;
+  const scriptURL=new URL('/bridge-sw.js',location.origin).href;
   const registration=await navigator.serviceWorker.register(scriptURL,{scope:'/',updateViaCache:'none'});
   const worker=registration.installing||registration.waiting||registration.active;
   if(worker&&worker.state!=='activated')await new Promise<void>((resolve,reject)=>{
