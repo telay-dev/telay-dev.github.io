@@ -1,4 +1,4 @@
-// 隔离传输验收服务，不访问模型、用户设备或真实业务。
+// Isolated transport fixture; it does not access models, user devices, or production services.
 package main
 
 import (
@@ -68,7 +68,7 @@ func main() {
 			return
 		}
 		for i := 1; ; i++ {
-			fmt.Fprintf(w, "id: %d\ndata: 消息-%d\n\n", i, i)
+			fmt.Fprintf(w, "id: %d\ndata: message-%d\n\n", i, i)
 			w.(http.Flusher).Flush()
 			select {
 			case <-r.Context().Done():
@@ -81,8 +81,8 @@ func main() {
 	http.HandleFunc("/post-stream", stream)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html;charset=utf-8")
-		fmt.Fprint(w, `<!doctype html><html><head><title>隔离流式验收</title></head><body><p>HTTP / WS / SSE 隔离验收</p></body></html>`)
+		fmt.Fprint(w, `<!doctype html><html><head><title>Streaming fixture</title></head><body><p>HTTP / WebSocket / SSE fixture</p></body></html>`)
 	})
-	log.Print("隔离夹具监听 127.0.0.1:3101")
+	log.Print("Streaming fixture listening on 127.0.0.1:3101")
 	log.Fatal(http.ListenAndServe("127.0.0.1:3101", nil))
 }

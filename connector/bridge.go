@@ -103,7 +103,7 @@ func (b *Bridge) Serve(c net.Conn) {
 		case "direct-offer":
 			answer, err := b.offerDirect(f.SDP)
 			if err != nil {
-				send(Frame{ID: f.ID, Op: "result", Error: "直连协商失败"})
+				send(Frame{ID: f.ID, Op: "result", Error: "direct connection negotiation failed"})
 			} else {
 				send(Frame{ID: f.ID, Op: "result", SDP: answer})
 			}
@@ -111,7 +111,7 @@ func (b *Bridge) Serve(c net.Conn) {
 			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1"}})
 		case "probe":
 			if f.Size < 1 || f.Size > 1<<20 {
-				send(Frame{ID: f.ID, Op: "result", Error: "测速单次限 1 MiB"})
+				send(Frame{ID: f.ID, Op: "result", Error: "bandwidth probes are limited to 1 MiB per request"})
 				continue
 			}
 			body := make([]byte, f.Size)
@@ -127,14 +127,14 @@ func (b *Bridge) Serve(c net.Conn) {
 			select {
 			case jobs <- f:
 			default:
-				send(Frame{ID: f.ID, Op: "result", Error: "请求过多，请稍后重试"})
+				send(Frame{ID: f.ID, Op: "result", Error: "too many requests; try again later"})
 				continue
 			}
 		case "http-pull", "http-cancel":
 			streams.control(f)
 		case "ws-open":
 			if b.upstream == nil {
-				send(Frame{ID: f.ID, Op: "ws-error", Error: "未设置本机上游"})
+				send(Frame{ID: f.ID, Op: "ws-error", Error: "local upstream is not configured"})
 				continue
 			}
 			if _, err := b.targetURL(f.Path); err != nil {
@@ -144,7 +144,7 @@ func (b *Bridge) Serve(c net.Conn) {
 			socketMu.Lock()
 			if _, exists := sockets[f.ID]; exists || len(sockets) >= 4 {
 				socketMu.Unlock()
-				send(Frame{ID: f.ID, Op: "ws-error", Error: "WebSocket 数量超限"})
+				send(Frame{ID: f.ID, Op: "ws-error", Error: "too many concurrent WebSocket connections"})
 				continue
 			}
 			sockets[f.ID] = nil
@@ -165,7 +165,7 @@ func (b *Bridge) Serve(c net.Conn) {
 					socketMu.Lock()
 					delete(sockets, f.ID)
 					socketMu.Unlock()
-					send(Frame{ID: f.ID, Op: "ws-error", Error: "上游 WebSocket 连接或认证失败"})
+					send(Frame{ID: f.ID, Op: "ws-error", Error: "upstream WebSocket connection or authentication failed"})
 					return
 				}
 				s.SetReadLimit(maxBody)
@@ -202,7 +202,7 @@ func (b *Bridge) Serve(c net.Conn) {
 			s.Write(writeCtx, websocket.MessageType(f.Type), f.Body)
 			stop()
 		default:
-			send(Frame{ID: f.ID, Op: "result", Error: "未知协议操作"})
+			send(Frame{ID: f.ID, Op: "result", Error: "unknown protocol operation"})
 		}
 	}
 }
@@ -218,21 +218,21 @@ func (b *Bridge) request(ctx context.Context, f Frame) Frame {
 
 func (b *Bridge) openHTTP(ctx context.Context, f Frame, streaming bool) (*http.Response, error) {
 	if b.upstream == nil {
-		return nil, fmt.Errorf("当前是仅测速模式，未连接本机服务")
+		return nil, fmt.Errorf("bandwidth-probe mode is active; no local service is connected")
 	}
 	u, err := b.targetURL(f.Path)
 	if err != nil {
 		return nil, err
 	}
 	if f.Method != "GET" && f.Method != "HEAD" && f.Method != "POST" && f.Method != "PUT" && f.Method != "PATCH" && f.Method != "DELETE" && f.Method != "OPTIONS" {
-		return nil, fmt.Errorf("不支持的请求方法")
+		return nil, fmt.Errorf("unsupported request method")
 	}
 	if len(f.Body) > maxBody {
-		return nil, fmt.Errorf("试用版附件上限 32 MiB")
+		return nil, fmt.Errorf("request body exceeds the 32 MiB limit")
 	}
 	req, err := http.NewRequestWithContext(ctx, f.Method, u.String(), bytes.NewReader(f.Body))
 	if err != nil {
-		return nil, fmt.Errorf("请求无效")
+		return nil, fmt.Errorf("invalid request")
 	}
 	for k, v := range f.Headers {
 		switch strings.ToLower(k) {
@@ -243,12 +243,12 @@ func (b *Bridge) openHTTP(ctx context.Context, f Frame, streaming bool) (*http.R
 	req.Header.Set("Origin", b.upstream.Scheme+"://"+b.upstream.Host)
 	client := *b.client
 	if streaming {
-		// 流的寿命由请求取消或隧道断开决定，不沿用普通 HTTP 的总时限。
+		// Streaming requests end on cancellation or tunnel closure, not the ordinary HTTP timeout.
 		client.Timeout = 0
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("本机上游请求失败")
+		return nil, fmt.Errorf("local upstream request failed")
 	}
 	return resp, nil
 }
@@ -256,7 +256,7 @@ func (b *Bridge) openHTTP(ctx context.Context, f Frame, streaming bool) (*http.R
 func bufferedHTTP(resp *http.Response) Frame {
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBody+1))
 	if err != nil || len(body) > maxBody {
-		return Frame{Error: "响应超过试用版 32 MiB 上限"}
+		return Frame{Error: "response exceeds the 32 MiB limit"}
 	}
 	headers := responseHeaders(resp)
 	encoding := ""
@@ -286,7 +286,7 @@ func responseHeaders(resp *http.Response) map[string]string {
 func requestURL(base *url.URL, path string) (*url.URL, error) {
 	p, err := url.Parse(path)
 	if err != nil || p.IsAbs() || p.Host != "" || !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") || strings.Contains(p.Path, "..") || strings.Contains(p.Path, "\\") || p.Path == "/connect" || p.Query().Has("token") {
-		return nil, fmt.Errorf("拒绝非 DSH 相对请求或远程 token 交换")
+		return nil, fmt.Errorf("only DSH-relative requests are allowed; remote token exchange is blocked")
 	}
 	u := *base
 	u.Path = p.Path
@@ -302,7 +302,7 @@ func (b *Bridge) targetURL(path string) (*url.URL, error) {
 	}
 	p, err := url.Parse(path)
 	if err != nil || p.IsAbs() || p.Host != "" || !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") || strings.Contains(p.Path, "..") || strings.Contains(p.Path, "\\") {
-		return nil, fmt.Errorf("拒绝跨主机或不安全路径")
+		return nil, fmt.Errorf("cross-host requests and unsafe paths are not allowed")
 	}
 	u := *b.upstream
 	u.Path = p.Path

@@ -21,7 +21,7 @@ func testBridge(t *testing.T, handler http.HandlerFunc) (*json.Encoder, *json.De
 	t.Cleanup(srv.Close)
 	u, _ := url.Parse(srv.URL)
 	client := srv.Client()
-	client.Timeout = 30 * time.Millisecond // SSE 必须绕过旧的总超时。
+	client.Timeout = 30 * time.Millisecond // SSE must bypass the ordinary total timeout.
 	a, c := net.Pipe()
 	t.Cleanup(func() { c.Close() })
 	go (&Bridge{upstream: u, client: client}).Serve(a)
@@ -51,7 +51,7 @@ func TestSSEStreamingCancellationAndParallelHTTP(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
-		fmt.Fprint(w, "id: 43\nevent: token\ndata: 第一条\n\n")
+		fmt.Fprint(w, "id: 43\nevent: token\ndata: event-one\n\n")
 		w.(http.Flusher).Flush()
 		<-r.Context().Done()
 		close(cancelled)
@@ -61,7 +61,7 @@ func TestSSEStreamingCancellationAndParallelHTTP(t *testing.T) {
 	if head.Op != "http-head" || head.Headers["Content-Type"] != "text/event-stream; charset=utf-8" {
 		t.Fatalf("missing immediate headers: %+v", head)
 	}
-	// 无 pull 不得转发正文；另一个 HTTP / ping 仍可以响应。
+	// Do not forward body data without a pull; another HTTP request or ping can still respond.
 	encoder.Encode(Frame{ID: 2, Op: "http", Path: "/asset", Method: "GET", Stream: true})
 	asset := readFrame(t, decoder)
 	if asset.ID != 2 || string(asset.Body) != "asset" {
@@ -74,7 +74,7 @@ func TestSSEStreamingCancellationAndParallelHTTP(t *testing.T) {
 	}
 	encoder.Encode(Frame{ID: 1, Op: "http-pull"})
 	data := readFrame(t, decoder)
-	if data.Op != "http-data" || !bytes.Contains(data.Body, []byte("第一条")) {
+	if data.Op != "http-data" || !bytes.Contains(data.Body, []byte("event-one")) {
 		t.Fatalf("missing streamed body after client timeout: %+v", data)
 	}
 	encoder.Encode(Frame{ID: 1, Op: "http-cancel"})
@@ -165,7 +165,7 @@ func TestWebSocketTextBinaryAndSubprotocol(t *testing.T) {
 	if f := readFrame(t, decoder); f.Op != "ws-opened" || f.Protocol != "relay-test" {
 		t.Fatalf("WS open failed: %+v", f)
 	}
-	for _, message := range []Frame{{Type: 1, Body: []byte("中文消息")}, {Type: 2, Body: []byte{0, 255, 1, 128}}} {
+	for _, message := range []Frame{{Type: 1, Body: []byte("café 🌱")}, {Type: 2, Body: []byte{0, 255, 1, 128}}} {
 		message.ID, message.Op = 1, "ws-send"
 		encoder.Encode(message)
 		f := readFrame(t, decoder)

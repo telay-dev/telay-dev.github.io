@@ -10,10 +10,10 @@ import (
 )
 
 func TestOptionsNonInteractive(t *testing.T) {
-	u := "http://127.0.0.1:3080/?token=a%27b&next=%2F&value=中文"
+	u := "http://127.0.0.1:3080/?token=a%27b&next=%2F&value=café"
 	o, err := parseOptions([]string{"--web", " https://example.test/ ", "--upstream", u, "--profile", "dsh"}, io.Discard)
 	if err != nil || o.Web != "https://example.test" || o.Upstream != u || o.Profile != "dsh" {
-		t.Fatalf("完整 URL 和参数应保留：%+v, %v", o, err)
+		t.Fatalf("full URL and parameters must be preserved: %+v, %v", o, err)
 	}
 	for _, args := range [][]string{
 		{"--web", "https://example.test", u},
@@ -22,7 +22,7 @@ func TestOptionsNonInteractive(t *testing.T) {
 	} {
 		o, err := parseOptions(args, io.Discard)
 		if err != nil || o.Web != "https://example.test" || o.Upstream != u {
-			t.Fatalf("位置参数及旧别名应兼容：%+v, %v", o, err)
+			t.Fatalf("positional arguments and the deprecated alias must work: %+v, %v", o, err)
 		}
 	}
 }
@@ -39,7 +39,7 @@ func TestOptionsReject(t *testing.T) {
 		{"http://127.0.0.1/", "http://127.0.0.1/"},
 	} {
 		if _, err := parseOptions(args, io.Discard); err == nil {
-			t.Errorf("应拒绝参数：%v", args)
+			t.Errorf("expected arguments to be rejected: %v", args)
 		}
 	}
 }
@@ -47,14 +47,14 @@ func TestOptionsReject(t *testing.T) {
 func TestOptionsLocalAndHelp(t *testing.T) {
 	for _, raw := range []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://[::1]:5173"} {
 		if _, err := parseOptions([]string{"--web", raw}, io.Discard); err != nil {
-			t.Errorf("本地测试 origin 应可用：%s: %v", raw, err)
+			t.Errorf("localhost test origin should be accepted: %s: %v", raw, err)
 		}
 	}
 	var out bytes.Buffer
 	if _, err := parseOptions([]string{"--help"}, &out); !errors.Is(err, flag.ErrHelp) {
-		t.Fatalf("help 应返回 flag.ErrHelp：%v", err)
+		t.Fatalf("help should return flag.ErrHelp: %v", err)
 	}
 	if !strings.Contains(out.String(), "Telay") || !strings.Contains(out.String(), "--web") || !strings.Contains(out.String(), "--upstream") || strings.Contains(out.String(), "--site") {
-		t.Fatalf("帮助只推荐新版命令：%s", out.String())
+		t.Fatalf("help should show only the current command: %s", out.String())
 	}
 }

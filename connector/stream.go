@@ -42,7 +42,7 @@ func (s *httpStreams) control(f Frame) {
 		stream.cancel()
 		return
 	}
-	// 单块信用。重复 pull 不会创建无界队列。
+	// One chunk of credit at a time prevents an unbounded queue.
 	select {
 	case stream.pull <- struct{}{}:
 	default:
@@ -56,7 +56,7 @@ func (s *httpStreams) start(parent context.Context, b *Bridge, f Frame, send fun
 	if _, exists := s.active[f.ID]; exists || len(s.active) >= maxHTTPStreams {
 		s.mu.Unlock()
 		cancel()
-		send(Frame{ID: f.ID, Op: "result", Error: "HTTP 连接数量超限"})
+		send(Frame{ID: f.ID, Op: "result", Error: "too many concurrent HTTP requests"})
 		return
 	}
 	s.active[f.ID] = stream
@@ -64,7 +64,7 @@ func (s *httpStreams) start(parent context.Context, b *Bridge, f Frame, send fun
 	go func() {
 		defer cancel()
 		defer func() { s.mu.Lock(); delete(s.active, f.ID); s.mu.Unlock() }()
-		// 首部 90 秒；非流式正文继续使用有界总时限。
+		// Give response headers 90 seconds; non-streaming bodies keep a bounded total timeout.
 		timer := time.AfterFunc(90*time.Second, cancel)
 		defer timer.Stop()
 		resp, err := b.openHTTP(ctx, f, true)
@@ -86,7 +86,7 @@ func (s *httpStreams) start(parent context.Context, b *Bridge, f Frame, send fun
 		for {
 			select {
 			case <-ctx.Done():
-				send(Frame{ID: f.ID, Op: "http-error", Error: "事件流已取消或连接中断"})
+				send(Frame{ID: f.ID, Op: "http-error", Error: "event stream cancelled or connection interrupted"})
 				return
 			case <-stream.pull:
 			}
@@ -98,7 +98,7 @@ func (s *httpStreams) start(parent context.Context, b *Bridge, f Frame, send fun
 				if err == io.EOF {
 					send(Frame{ID: f.ID, Op: "http-end"})
 				} else {
-					send(Frame{ID: f.ID, Op: "http-error", Error: "上游事件流读取失败"})
+					send(Frame{ID: f.ID, Op: "http-error", Error: "failed to read upstream event stream"})
 				}
 				return
 			}

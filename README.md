@@ -1,14 +1,16 @@
 # Telay
 
-Connect a browser to a local web service through the Telay connector. Supports HTTP, WebSocket, and server-sent events, using WebRTC when available and DERP otherwise.
+Connect to a local web service from another device through a browser. The Go connector supports HTTP, WebSocket, and server-sent events. It uses WebRTC when possible and DERP relay otherwise.
 
-Start the connector with your local service URL:
+## Quick start
+
+Download the executable for your operating system and processor from [GitHub Releases](https://github.com/GitaiQAQ/telay/releases/latest), then run it. For example, on an Apple silicon Mac:
 
 ```sh
-./telay --web https://telay.js.org --upstream http://127.0.0.1:3080/
+./telay-darwin-arm64 --web https://telay.js.org --upstream http://127.0.0.1:3080/
 ```
 
-Open [telay.js.org](https://telay.js.org) and enter the pairing address printed by the connector. Keep that address private; it grants access to the configured service.
+Open [telay.js.org](https://telay.js.org) and enter the pairing address printed by the connector. Keep the address private; it grants access to the configured service.
 
 ## Development
 
@@ -19,10 +21,10 @@ pnpm install --frozen-lockfile
 pnpm dev
 pnpm build
 pnpm test
-pnpm release
 cd connector && go test -race ./...
+pnpm release
 ```
 
-`pnpm release` builds executables for macOS, Linux, and Windows. GitHub Actions publishes them as direct downloads on GitHub Releases and deploys the site on pushes to `main`; generated files are not stored in the repository. The build emits the GitHub Pages domain file for `telay.js.org`.
+`pnpm release` builds executables for macOS, Linux, and Windows. The GitHub Actions workflow publishes downloads on GitHub Releases and deploys the site to [telay.js.org](https://telay.js.org) on pushes to `main`.
 
-The interface is available in English, Simplified Chinese, and Japanese. Telay is licensed under [MIT](LICENSE); third-party notices are in [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt), and release license texts are attached to GitHub Releases.
+Telay is licensed under [MIT](LICENSE). Third-party notices are in [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).

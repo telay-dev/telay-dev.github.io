@@ -2,7 +2,7 @@ Telay uses Tailcat (github.com/tailscale/tailcat, commit
 e00cdde6ff787f801361ff85ed085775c775d4c5) and Pion WebRTC (MIT). Their license
 texts are published in THIRD_PARTY_LICENSES.txt.
 
-The browser interface uses React, lucide-react, Tailwind CSS, and
+The browser interface uses Preact, lucide-preact, Tailwind CSS, and
 http-cache-semantics. Their license texts are included in the same download.
 
 The Apple download icon is from Simple Icons (CC0-1.0):

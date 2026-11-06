@@ -1,34 +1,109 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta name="referrer" content="no-referrer">
-  <meta name="theme-color" content="#f7f5f0">
-</head>
-<body>
-  <div class="relay-shell">
-    <header class="flex items-center justify-between gap-4 px-6 py-7 sm:px-10">
-      <a href="/" class="text-lg font-medium tracking-tight" data-i18n-aria-label="home" aria-label="Telay home">Telay</a>
-      <div data-language-menu></div>
-    </header>
-    <main class="mx-auto w-full max-w-lg flex-1 px-6 pb-12 pt-10 sm:pt-20">
-      <h1 class="mb-10 text-3xl font-medium tracking-tight" data-i18n="heading">Connect a device</h1>
-      <form id="standalone-form">
-        <label for="standalone-pair" class="mb-3 block text-sm font-medium" data-i18n="pairLabel">Pairing address</label>
-        <input id="standalone-pair" type="password" autocomplete="off" spellcheck="false" data-i18n-placeholder="pairPlaceholder" placeholder="Paste the tc… address from your device" aria-describedby="standalone-hint" class="field w-full font-mono">
-        <p id="standalone-hint" class="mt-3 text-xs leading-5 text-muted" data-i18n="pairHint">This address grants access to your device. Keep it private.</p>
-        <div id="standalone-recent" class="mt-3" hidden>
-          <div class="flex items-center gap-2">
-            <select id="standalone-history" class="recent-select flex-1" data-i18n-aria-label="recentAddresses" aria-label="Recent connections"></select>
-            <button id="standalone-clear" class="quiet-button text-xs text-muted" type="button" data-i18n="clearHistory">Clear</button>
+  <head>
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#f7f5f0" />
+  </head>
+  <body>
+    <div class="relay-shell">
+      <header
+        class="flex items-center justify-between gap-4 px-6 py-7 sm:px-10"
+      >
+        <a
+          href="/"
+          class="text-lg font-medium tracking-tight"
+          data-i18n-aria-label="home"
+          aria-label="Telay home"
+          >Telay</a
+        >
+        <div data-language-menu></div>
+      </header>
+      <main class="mx-auto w-full max-w-lg flex-1 px-6 pb-12 pt-10 sm:pt-20">
+        <h1
+          class="mb-10 text-3xl font-medium tracking-tight"
+          data-i18n="heading"
+        >
+          Connect a device
+        </h1>
+        <form id="standalone-form">
+          <label
+            for="standalone-pair"
+            class="mb-3 block text-sm font-medium"
+            data-i18n="pairLabel"
+            >Pairing address</label
+          >
+          <input
+            id="standalone-pair"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            data-i18n-placeholder="pairPlaceholder"
+            placeholder="Paste the tc… address from your device"
+            aria-describedby="standalone-hint"
+            class="field w-full font-mono"
+          />
+          <p
+            id="standalone-hint"
+            class="mt-3 text-xs leading-5 text-muted"
+            data-i18n="pairHint"
+          >
+            This address grants access to your device. Keep it private.
+          </p>
+          <div id="standalone-recent" class="mt-3" hidden>
+            <div class="flex items-center gap-2">
+              <select
+                id="standalone-history"
+                class="recent-select flex-1"
+                data-i18n-aria-label="recentAddresses"
+                aria-label="Recent connections"
+              ></select>
+              <button
+                id="standalone-clear"
+                class="quiet-button text-xs text-muted"
+                type="button"
+                data-i18n="clearHistory"
+              >
+                Clear
+              </button>
+            </div>
+            <p
+              id="standalone-history-hint"
+              class="text-xs leading-5 text-muted"
+              data-i18n="historyPrivacy"
+            >
+              Saved in this browser. Avoid shared devices.
+            </p>
           </div>
-          <p id="standalone-history-hint" class="text-xs leading-5 text-muted" data-i18n="historyPrivacy">Saved in this browser. Avoid shared devices.</p>
-        </div>
-        <button id="standalone-connect" type="submit" class="btn mt-7 w-full" data-i18n="connectAndOpen">Connect and open</button>
-      </form>
-      <p id="standalone-status" role="status" class="mt-4 min-h-11 py-3 text-xs leading-5 text-muted" data-i18n="disconnected">Not connected</p>
-      <p id="standalone-error" role="alert" class="mt-2 text-sm leading-6 text-danger" hidden></p>
-      <a href="/" class="text-link mt-9 inline-block text-sm text-muted" data-i18n="installAndHelp">Installation and help</a>
-    </main>
-  </div>
-</body>
+          <button
+            id="standalone-connect"
+            type="submit"
+            class="btn mt-7 w-full"
+            data-i18n="connectAndOpen"
+          >
+            Connect and open
+          </button>
+        </form>
+        <p
+          id="standalone-status"
+          role="status"
+          class="mt-4 min-h-11 py-3 text-xs leading-5 text-muted"
+          data-i18n="disconnected"
+        >
+          Not connected
+        </p>
+        <p
+          id="standalone-error"
+          role="alert"
+          class="mt-2 text-sm leading-6 text-danger"
+          hidden
+        ></p>
+        <a
+          href="/"
+          class="text-link mt-9 inline-block text-sm text-muted"
+          data-i18n="installAndHelp"
+          >Installation and help</a
+        >
+      </main>
+    </div>
+  </body>
 </html>

@@ -31,18 +31,18 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 		return o, err
 	}
 	if fs.NArg() > 1 {
-		return o, fmt.Errorf("只接受一个本机服务 URL")
+		return o, fmt.Errorf("only one local service URL is allowed")
 	}
 	if fs.NArg() == 1 {
 		if o.Upstream != "" {
-			return o, fmt.Errorf("请只指定一次本机服务 URL")
+			return o, fmt.Errorf("specify the local service URL only once")
 		}
 		o.Upstream = fs.Arg(0)
 	}
 	o.Web = strings.TrimSpace(o.Web)
 	legacyWeb = strings.TrimSpace(legacyWeb)
 	if o.Web != "" && legacyWeb != "" && strings.TrimRight(o.Web, "/") != strings.TrimRight(legacyWeb, "/") {
-		return o, fmt.Errorf("--web 与旧 --site 参数不一致")
+		return o, fmt.Errorf("--web and deprecated --site values do not match")
 	}
 	if o.Web == "" {
 		o.Web = legacyWeb
@@ -50,7 +50,7 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 	o.Web = strings.TrimRight(o.Web, "/")
 	o.Upstream = strings.TrimSpace(o.Upstream)
 	if o.Profile != "generic" && o.Profile != "dsh" {
-		return o, fmt.Errorf("profile 只能是 generic 或 dsh")
+		return o, fmt.Errorf("--profile must be generic or dsh")
 	}
 	if o.Web != "" {
 		if err := validateWeb(o.Web); err != nil {
@@ -68,7 +68,7 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 func validateWeb(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil || u == nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Path != "" && u.Path != "/") {
-		return fmt.Errorf("--web 必须是连接网站 origin，不能包含路径、凭证或查询参数")
+		return fmt.Errorf("--web must be a site origin without a path, credentials, or query parameters")
 	}
 	if u.Scheme == "https" {
 		return nil
@@ -77,5 +77,5 @@ func validateWeb(raw string) error {
 	if u.Scheme == "http" && (u.Hostname() == "localhost" || ip != nil && ip.IsLoopback()) {
 		return nil
 	}
-	return fmt.Errorf("--web 必须使用 HTTPS；HTTP 仅限本地测试")
+	return fmt.Errorf("--web must use HTTPS; HTTP is allowed only for localhost testing")
 }

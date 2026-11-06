@@ -27,7 +27,7 @@ func (b *Bridge) offerDirect(sdp string) (string, error) {
 		return "", fmt.Errorf("invalid SDP")
 	}
 	var settings webrtc.SettingEngine
-	// 仅本机私网 / loopback 接口；不使用公共 STUN/TURN，不扫描网段。
+	// Use only private or loopback interfaces; do not use public STUN/TURN or scan networks.
 	settings.SetIPFilter(func(ip net.IP) bool { return ip.IsPrivate() || ip.IsLoopback() })
 	settings.SetIncludeLoopbackCandidate(true)
 	peer, err := webrtc.NewAPI(webrtc.WithSettingEngine(settings)).NewPeerConnection(webrtc.Configuration{})
@@ -116,7 +116,7 @@ func (b *Bridge) offerDirect(sdp string) (string, error) {
 	case <-time.After(5 * time.Second):
 		return "", fmt.Errorf("gathering timeout")
 	}
-	// 未连通的候选会话自动释放；已连接会话由数据通道关闭回收。
+	// Unconnected candidates time out; connected peers are released when their data channel closes.
 	time.AfterFunc(20*time.Second, func() {
 		if peer.ConnectionState() != webrtc.PeerConnectionStateConnected {
 			peer.Close()
