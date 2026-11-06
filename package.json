@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "rsbuild dev --host 0.0.0.0",
-    "build": "tsc --noEmit && rsbuild build"
+    "build": "tsc --noEmit && rsbuild build",
+    "test": "node --test scripts/test-*.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "http-cache-semantics": "4.3.0",

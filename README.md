@@ -17,13 +17,11 @@ pnpm build
 Build platform executables and the static site with:
 
 ```sh
-cd connector && go mod vendor && cd ..
-node scripts/build-connectors.mjs
-node scripts/package-release.mjs
+pnpm release
 pnpm build
 ```
 
-Run the frontend checks with `node scripts/test-i18n.mjs`, `node scripts/test-history-cache.mjs`, `node scripts/test-streaming.mjs`, and `node scripts/test-install.mjs`. Run connector checks with `cd connector && go test -race ./...`.
+Run project checks with `pnpm test` and `cd connector && go test -race ./...`.
 
 Start the connector with a site origin and a local service URL:
 

@@ -32,9 +32,7 @@ jobs:
         with:
           go-version: '1.27.2'
       - run: pnpm install --frozen-lockfile
-      - run: cd connector && go mod vendor
-      - run: node scripts/build-connectors.mjs
-      - run: node scripts/package-release.mjs
+      - run: pnpm release
       - name: Commit raw-download assets
         run: |
           git config user.name 'Gitai'
