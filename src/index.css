@@ -60,6 +60,24 @@ summary {
     @apply flex min-h-screen flex-col;
     min-height: 100svh;
   }
+  .hero-heading {
+    font-size: clamp(1.65rem, 4vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.4;
+    text-wrap: balance;
+  }
+  .hero-heading > span:first-child {
+    display: block;
+  }
+  .hero-heading-accent {
+    padding: 0.06em 0.18em;
+    margin-left: -0.18em;
+    color: #fffaf5;
+    background: var(--color-accent-dark);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
   .btn {
     @apply relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-lg bg-accent px-5 py-3 text-sm font-medium text-white hover:bg-accent-dark disabled:hover:bg-accent;
     transition:

@@ -141,15 +141,28 @@ export default function App() {
           <span className="font-bold text-accent">T</span>elay
         </a>
         <div className="flex items-center gap-2">
-          <a className="quiet-button text-xs" href="https://github.com/telay-dev/telay-dev.github.io">
-            GitHub
+          <a
+            className="quiet-button"
+            href="https://github.com/telay-dev/telay-dev.github.io"
+            aria-label="GitHub"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="currentColor"
+            >
+              <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-1.88c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.64-1.25-1.64-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.71 2.62 1.22 3.26.93.1-.73.39-1.22.71-1.5-2.5-.29-5.14-1.26-5.14-5.57 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.43.11-2.99 0 0 .95-.3 3.09 1.16a10.7 10.7 0 0 1 5.62 0c2.14-1.46 3.09-1.16 3.09-1.16.61 1.56.23 2.71.11 2.99.73.79 1.16 1.8 1.16 3.03 0 4.32-2.64 5.28-5.16 5.56.41.35.77 1.04.77 2.1v2.86c0 .3.2.65.78.54A11.25 11.25 0 0 0 12 .75Z" />
+            </svg>
           </a>
           <LanguageSelect />
         </div>
       </header>
       <main className="mx-auto w-full max-w-lg flex-1 px-6 pb-12 pt-10 sm:pt-20">
-        <h1 className="mb-10 text-3xl font-medium tracking-tight">
-          {tr("heading")}
+        <h1 className="hero-heading mb-10">
+          <span>{tr("headingLead")}</span>{" "}
+          <span className="hero-heading-accent">{tr("headingEmphasis")}</span>
         </h1>
         <form
           onSubmit={(event) => {

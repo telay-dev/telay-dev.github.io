@@ -4,7 +4,8 @@
     "zh-CN": {
       pageTitle: "Telay · 安全访问本地 Web 服务",
       home: "Telay 首页",
-      heading: "安全访问本地 Web 服务",
+      headingLead: "安全访问",
+      headingEmphasis: "本地 Web 服务",
       pairLabel: "配对地址",
       pairPlaceholder: "粘贴设备端输出的 tc… 地址",
       pairHint: "配对地址相当于访问密码，请勿分享。",
@@ -130,7 +131,8 @@
     en: {
       pageTitle: "Telay · Securely access your local web server",
       home: "Telay home",
-      heading: "Securely access your local web server",
+      headingLead: "Secure access to",
+      headingEmphasis: "your local web server",
       pairLabel: "Pairing address",
       pairPlaceholder: "Paste your device’s tc… address",
       pairHint: "This address grants access to your device. Keep it private.",
@@ -272,7 +274,8 @@
     ja: {
       pageTitle: "Telay · ローカル Web サーバーに安全にアクセス",
       home: "Telay ホーム",
-      heading: "ローカル Web サーバーに安全にアクセス",
+      headingLead: "ローカル Web サーバーに",
+      headingEmphasis: "安全にアクセス",
       pairLabel: "ペアリングアドレス",
       pairPlaceholder: "デバイスの tc… アドレスを貼り付け",
       pairHint:
