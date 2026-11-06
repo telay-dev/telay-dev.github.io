@@ -19,15 +19,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - uses: pnpm/action-setup@v4
         with:
           version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.2'
+          cache-dependency-path: connector/go.sum
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache-dependency-path: connector/go.sum
       - run: pnpm install --frozen-lockfile
       - run: pnpm release
       - name: Publish GitHub Release
@@ -42,10 +65,6 @@ jobs:
             gh release create "$tag" "${assets[@]}" --target "$GITHUB_SHA" \
               --title "Telay ${GITHUB_SHA:0:7}" --notes "Automated build from main." --latest
           fi
-      - run: pnpm build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
 
   deploy:
     environment:
