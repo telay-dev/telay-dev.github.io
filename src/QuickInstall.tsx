@@ -148,13 +148,13 @@ export default function QuickInstall() {
         <p className="mt-3 text-muted">{t("unsignedWarning")}</p>
         <a
           className="text-link mt-3 inline-block"
-          href="https://github.com/GitaiQAQ/telay/releases/latest/download/SHA256SUMS"
+          href="https://github.com/telay-dev/telay-dev.github.io/releases/latest/download/SHA256SUMS"
         >
           {t("checksums")}
         </a>
         <a
           className="text-link ml-4 mt-3 inline-block"
-          href="https://github.com/GitaiQAQ/telay/releases/latest/download/THIRD_PARTY_LICENSES.txt"
+          href="https://github.com/telay-dev/telay-dev.github.io/releases/latest/download/THIRD_PARTY_LICENSES.txt"
         >
           {t("licenses")}
         </a>

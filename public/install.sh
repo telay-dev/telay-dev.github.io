@@ -112,7 +112,7 @@ main() {
   binary="telay-${os}-${arch}"
   [ "$os" != windows ] || binary="${binary}.exe"
   printf '%s\n' "Platform: ${os} / ${arch}; downloading with ${downloader}..."
-  downloads=${TELAY_DOWNLOADS:-https://github.com/GitaiQAQ/telay/releases/latest/download}
+  downloads=${TELAY_DOWNLOADS:-https://github.com/telay-dev/telay-dev.github.io/releases/latest/download}
   download "$downloads/SHA256SUMS" "$work/SHA256SUMS" || fail 'Could not download the checksum list; nothing was installed'
   expected=$(awk -v name="$binary" '
     $2 == name { count++; hash=tolower($1) }

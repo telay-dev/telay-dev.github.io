@@ -1,6 +1,6 @@
 import { t } from "./i18n";
 
-const downloads = "https://github.com/GitaiQAQ/telay/releases/latest/download";
+const downloads = "https://github.com/telay-dev/telay-dev.github.io/releases/latest/download";
 
 // The Apple icon is from Simple Icons (CC0); the other platform icons are original.
 function PlatformIcon({ system }: { system: "macOS" | "Windows" | "Linux" }) {

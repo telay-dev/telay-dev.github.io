@@ -25,7 +25,7 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 	fs.StringVar(&o.Profile, "profile", "generic", "generic or dsh")
 	fs.BoolVar(&o.Probe, "probe-only", false, "run a bandwidth test only")
 	fs.Usage = func() {
-		fmt.Fprintln(output, "Telay\n\nUsage: telay --web https://telay.js.org --upstream 'http://127.0.0.1:3080/'\n\n  --web URL              Telay site origin\n  --upstream URL         Local HTTP service URL; prompt if omitted\n  --profile generic|dsh  Integration profile (default: generic)\n  --probe-only           Run a bandwidth test only\n  -h, --help             Show help\n\nThird-party license texts:\nhttps://github.com/GitaiQAQ/telay/releases/latest/download/THIRD_PARTY_LICENSES.txt")
+		fmt.Fprintln(output, "Telay\n\nUsage: telay --web https://telay.js.org --upstream 'http://127.0.0.1:3080/'\n\n  --web URL              Telay site origin\n  --upstream URL         Local HTTP service URL; prompt if omitted\n  --profile generic|dsh  Integration profile (default: generic)\n  --probe-only           Run a bandwidth test only\n  -h, --help             Show help\n\nThird-party license texts:\nhttps://github.com/telay-dev/telay-dev.github.io/releases/latest/download/THIRD_PARTY_LICENSES.txt")
 	}
 	if err := fs.Parse(args); err != nil {
 		return o, err
