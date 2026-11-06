@@ -24,7 +24,7 @@ for(const name of binaries){
 const src=mkdtempSync(path.join(root,'release/source-'));
 cpSync(path.join(root,'connector'),path.join(src,'connector'),{recursive:true,filter:p=>!path.basename(p).startsWith('dsh-remote')&&!['telay','telay.exe'].includes(path.basename(p))});
 for(const name of ['src','scripts','__relay','docs','browser-source'])cpSync(path.join(root,name),path.join(src,name),{recursive:true});
-for(const name of ['README.md','LICENSE','DESIGN.md','PRODUCT.md','.gitignore','site.meta','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','index.html','tsconfig.json','vite.config.ts','postcss.config.js','tailwind.config.js'])copyFileSync(path.join(root,name),path.join(src,name));
+for(const name of ['README.md','LICENSE','.gitignore','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','index.html','tsconfig.json','vite.config.ts','postcss.config.js','tailwind.config.js'])copyFileSync(path.join(root,name),path.join(src,name));
 mkdirSync(path.join(src,'public/tailcat'),{recursive:true});
 mkdirSync(path.join(src,'public/downloads'),{recursive:true});
 for(const name of ['bridge-sw.js','__relay','favicon.svg','install.sh'])cpSync(path.join(root,'public',name),path.join(src,'public',name),{recursive:true});

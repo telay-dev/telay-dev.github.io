@@ -1,6 +1,0 @@
-{
-    "app_name": "telay",
-    "app_description": "Telay 通用连接入口，内网直连优先，公共中继后备",
-    "capabilities": [],
-    "datasources": {}
-}
