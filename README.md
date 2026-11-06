@@ -23,6 +23,6 @@ pnpm release
 cd connector && go test -race ./...
 ```
 
-`pnpm release` builds macOS, Linux, and Windows connector binaries and their license files. GitHub Actions publishes downloads and deploys the site on pushes to `main`. Enable GitHub Pages for the repository; `public/CNAME` sets `telay.js.org`.
+`pnpm release` builds executables for macOS, Linux, and Windows. GitHub Actions publishes them as direct downloads on GitHub Releases and deploys the site on pushes to `main`; generated files are not stored in the repository. The build emits the GitHub Pages domain file for `telay.js.org`.
 
-The interface is available in English, Simplified Chinese, and Japanese. Telay is licensed under [MIT](LICENSE); third-party notices and license texts are in `public/downloads`.
+The interface is available in English, Simplified Chinese, and Japanese. Telay is licensed under [MIT](LICENSE); third-party notices are in [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt), and release license texts are attached to GitHub Releases.

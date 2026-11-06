@@ -58,11 +58,11 @@ export default function QuickInstall() {
       <summary className="py-3 text-muted">{t('otherMethods')}</summary>
       <p className="mb-3 text-muted">{t('manualInstall')}</p>
       <DownloadOptions onSelect={setPlatform}/>
-      <p className="mt-4 text-muted">{t('chmodBefore')}<code>chmod +x telay-*</code>{t('chmodAfter')}</p>
+      {!platform.startsWith('windows')&&<p className="mt-4 text-muted">{t('chmodBefore')}<code>chmod +x telay-{platform}</code>{t('chmodAfter')}</p>}
       {command(manualRun, 'manual', t('copyManualRun'))}
       <p className="mt-3 text-muted">{t('unsignedWarning')}</p>
-      <a className="text-link mt-3 inline-block" href="https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads/SHA256SUMS">{t('checksums')}</a>
-      <a className="text-link ml-4 mt-3 inline-block" href="https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads/THIRD_PARTY_LICENSES.txt">{t('licenses')}</a>
+      <a className="text-link mt-3 inline-block" href="https://github.com/GitaiQAQ/telay/releases/latest/download/SHA256SUMS">{t('checksums')}</a>
+      <a className="text-link ml-4 mt-3 inline-block" href="https://github.com/GitaiQAQ/telay/releases/latest/download/THIRD_PARTY_LICENSES.txt">{t('licenses')}</a>
     </details>
   </div>;
 }

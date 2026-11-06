@@ -1,9 +1,7 @@
 node_modules/
 dist/
+.cache/
 *.tsbuildinfo
 connector/dsh-remote
 connector/vendor/
 release/
-public/downloads/telay-*
-public/downloads/THIRD_PARTY_LICENSES.txt
-public/downloads/SHA256SUMS

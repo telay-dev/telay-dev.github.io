@@ -16,4 +16,4 @@ go test -race ./...
 GOOS=linux GOARCH=arm64 go build -o telay .
 ```
 
-Third-party notices and license texts are published in `../public/downloads/`.
+GitHub Releases provides executables, checksums, and third-party license files as separate downloads. The notice source is `../THIRD_PARTY_NOTICES.txt`.

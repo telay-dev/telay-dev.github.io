@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "rsbuild dev --host 0.0.0.0",
-    "build": "tsc --noEmit && rsbuild build",
+    "dev": "node scripts/build-assets.mjs .cache/tailcat && rsbuild dev --host 0.0.0.0",
+    "build": "tsc --noEmit && rsbuild build && node scripts/build-assets.mjs dist/tailcat",
     "test": "node --test scripts/test-*.mjs",
     "release": "node scripts/release.mjs"
   },

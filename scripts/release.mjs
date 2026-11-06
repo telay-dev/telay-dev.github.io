@@ -1,25 +1,26 @@
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {createHash} from 'node:crypto';
-import {mkdirSync,readdirSync,readFileSync,copyFileSync,writeFileSync} from 'node:fs';
+import {mkdirSync,readdirSync,readFileSync,copyFileSync,writeFileSync,rmSync,existsSync} from 'node:fs';
 import path from 'node:path';
 
 const run=promisify(execFile);
 const root=path.resolve(import.meta.dirname,'..');
 const connector=path.join(root,'connector');
-const output=path.join(root,'public/downloads');
-const binaries=['telay-darwin-amd64','telay-darwin-arm64','telay-linux-amd64','telay-linux-arm64','telay-windows-amd64.exe'];
+const output=path.join(root,'release');
+const platforms=[['darwin','amd64'],['darwin','arm64'],['linux','amd64'],['linux','arm64'],['windows','amd64']];
+const binaries=platforms.map(([os,arch])=>`telay-${os}-${arch}${os==='windows'?'.exe':''}`);
 
-await run(process.env.RELAY_GO||'go',['mod','vendor'],{cwd:connector});
-mkdirSync(path.join(root,'release'),{recursive:true});
-await Promise.all([['darwin','amd64'],['darwin','arm64'],['linux','amd64'],['linux','arm64'],['windows','amd64']].map(async([os,arch])=>{
+rmSync(output,{recursive:true,force:true});
+mkdirSync(output,{recursive:true});
+if(!existsSync(path.join(connector,'vendor/modules.txt')))
+  await run(process.env.RELAY_GO||'go',['mod','vendor'],{cwd:connector});
+await Promise.all(platforms.map(([os,arch])=>{
   const name=`telay-${os}-${arch}${os==='windows'?'.exe':''}`;
-  await run(process.env.RELAY_GO||'go',['build','-trimpath','-ldflags=-s -w','-o',path.join(root,'release',name),'.'],
+  return run(process.env.RELAY_GO||'go',['build','-trimpath','-ldflags=-s -w','-o',path.join(output,name),'.'],
     {cwd:connector,env:{...process.env,CGO_ENABLED:'0',GOOS:os,GOARCH:arch},maxBuffer:1024*1024});
 }));
 
-mkdirSync(output,{recursive:true});
-for(const name of binaries)copyFileSync(path.join(root,'release',name),path.join(output,name));
 const licenses=[];
 function collect(directory,base=directory){
   for(const item of readdirSync(directory,{withFileTypes:true})){
@@ -29,9 +30,12 @@ function collect(directory,base=directory){
   }
 }
 collect(path.join(connector,'vendor'));
+collect(path.join(connector,'browser'));
 for(const name of ['react','react-dom','lucide-react','tailwindcss','http-cache-semantics'])collect(path.join(root,'node_modules',name));
-writeFileSync(path.join(output,'THIRD_PARTY_LICENSES.txt'),licenses.join(''));
 
-const files=[...binaries,'THIRD_PARTY_NOTICES.txt','THIRD_PARTY_LICENSES.txt'];
+copyFileSync(path.join(root,'LICENSE'),path.join(output,'LICENSE'));
+copyFileSync(path.join(root,'THIRD_PARTY_NOTICES.txt'),path.join(output,'THIRD_PARTY_NOTICES.txt'));
+writeFileSync(path.join(output,'THIRD_PARTY_LICENSES.txt'),licenses.join(''));
+const files=[...binaries,'LICENSE','THIRD_PARTY_NOTICES.txt','THIRD_PARTY_LICENSES.txt'];
 const checksums=files.sort().map(name=>`${createHash('sha256').update(readFileSync(path.join(output,name))).digest('hex')}  ${name}`);
 writeFileSync(path.join(output,'SHA256SUMS'),checksums.join('\n')+'\n');

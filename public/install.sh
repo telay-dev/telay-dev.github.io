@@ -1,20 +1,20 @@
 #!/bin/sh
-# Installer revision: 2026-11-06.3
-# Telay 安装器；不会启动连接器、安装系统依赖或修改 shell 配置。
-# 整个安装流程在 main 中：通过管道下载时，脚本未完整解析不会开始安装。
+# Installer revision: 2026-11-06.4
+# Installs the connector without sudo, system dependencies, shell changes, or auto-start.
+# Installation starts only after the complete script has been read from a pipe.
 set -eu
 
-fail() { printf '%s\n' "安装失败：$*" >&2; exit 1; }
+fail() { printf '%s\n' "Install failed: $*" >&2; exit 1; }
 quote() { printf "'"; printf '%s' "$1" | sed "s/'/'\\\\''/g"; printf "'"; }
 usage() {
   printf '%s\n' \
     'Usage: sh install.sh --web https://site-origin [--upstream local-URL] [--dir ./telay]' \
     'Options: --downloader auto|curl|wget (default: auto, prefers curl)' \
-    'Supports macOS / Linux amd64 and arm64. Download the Windows executable directly.' \
-    '不使用 sudo，不覆盖已有目录，不自动运行连接器。'
+    'Supports macOS / Linux amd64 and arm64. Windows users can download the executable manually.' \
+    'No sudo required. Existing directories are not overwritten. The connector is not started.'
 }
 cleanup() {
-  # 仅清理本次 mktemp 创建的已知文件，绝不递归删除安装目录。
+  # Remove only known files from this temporary directory.
   rm -f "$work/SHA256SUMS" "$work/telay"
   rmdir "$work" 2>/dev/null || :
 }
@@ -22,8 +22,10 @@ download() {
   if [ "$downloader" = curl ]; then
     curl -fL --proto "$protocols" --proto-redir "$protocols" --retry 2 \
       --connect-timeout 15 --max-time 300 -o "$2" "$1"
+  elif [ "$protocols" = '=https' ]; then
+    wget --https-only --timeout=30 --tries=2 --max-redirect=5 -O "$2" "$1"
   else
-    wget --timeout=30 --tries=2 --max-redirect=0 -O "$2" "$1"
+    wget --timeout=30 --tries=2 --max-redirect=5 -O "$2" "$1"
   fi
 }
 digest() {
@@ -41,7 +43,7 @@ main() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --web|--site|--upstream|--dir|--downloader)
-        [ "$#" -ge 2 ] || fail "$1 缺少参数"
+        [ "$#" -ge 2 ] || fail "$1 requires a value"
         case "$1" in
           --web|--site) site=$2 ;;
           --upstream) upstream=$2 ;;
@@ -50,88 +52,87 @@ main() {
         esac
         shift 2 ;;
       -h|--help) usage; return ;;
-      *) fail "未知参数：$1（使用 --help 查看说明）" ;;
+      *) fail "Unknown option: $1 (use --help for usage)" ;;
     esac
   done
-  # 清除复制命令时 origin 两端的空格/制表符，仍拒绝地址中的空白。
+  # Trim pasted whitespace around the origin, but reject whitespace inside it.
   site=$(printf '%s' "$site" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  [ -n "$site" ] || fail '必须通过 --web 指定连接网站'
+  [ -n "$site" ] || fail '--web must specify the Telay site origin'
   site=${site%/}
-  # 仅接受 origin；生产必须 HTTPS，HTTP 只供 localhost 验证。
+  # Accept origins only. Production requires HTTPS; HTTP is limited to localhost.
   case "$site" in
     https://*) authority=${site#https://}; protocols='=https' ;;
     http://localhost|http://localhost:*|http://127.0.0.1|http://127.0.0.1:*)
       authority=${site#http://}; protocols='=http,https' ;;
-    *) fail '--web 必须是 HTTPS 站点（本地测试可用 http://localhost:端口）' ;;
+    *) fail '--web must be an HTTPS origin (HTTP is allowed for localhost testing)' ;;
   esac
   printf '%s\n' "$authority" | awk '
     /^[A-Za-z0-9.-]+(:[0-9]+)?$/ { valid=1 }
     END { exit !(NR == 1 && valid) }
-  ' || fail '--web 只能是站点 origin，不能包含路径、凭证或查询参数'
+  ' || fail '--web must be an origin without a path, credentials, or query parameters'
   case "$site" in
-    http://*) case "${authority%%:*}" in localhost|127.0.0.1) : ;; *) fail 'HTTP 仅限本地测试' ;; esac ;;
+    http://*) case "${authority%%:*}" in localhost|127.0.0.1) : ;; *) fail 'HTTP is allowed only for localhost testing' ;; esac ;;
   esac
-  case "$downloader" in auto|curl|wget) : ;; *) fail '--downloader 仅支持 auto、curl、wget' ;; esac
+  case "$downloader" in auto|curl|wget) : ;; *) fail '--downloader must be auto, curl, or wget' ;; esac
   if [ "$downloader" = auto ]; then
     if command -v curl >/dev/null 2>&1; then downloader=curl
     elif command -v wget >/dev/null 2>&1; then downloader=wget
-    else fail '需要 curl 或 wget，请安装后重试'; fi
+    else fail 'curl or wget is required'; fi
   fi
-  command -v "$downloader" >/dev/null 2>&1 || fail "缺少 $downloader"
+  command -v "$downloader" >/dev/null 2>&1 || fail "Missing dependency: $downloader"
   if command -v sha256sum >/dev/null 2>&1; then checksum_tool=sha256sum
   elif command -v shasum >/dev/null 2>&1; then checksum_tool=shasum
   elif command -v openssl >/dev/null 2>&1; then checksum_tool=openssl
-  else fail '需要 sha256sum、shasum 或 openssl 用于校验'; fi
+  else fail 'sha256sum, shasum, or openssl is required for checksum verification'; fi
   case "$(uname -s)" in
     Darwin) os=darwin ;;
     Linux) os=linux ;;
-    *) fail '此脚本仅支持 macOS / Linux；其他系统请手动下载' ;;
+    *) fail 'This installer supports macOS and Linux only; download the executable manually for other systems' ;;
   esac
   case "$(uname -m)" in
     x86_64|amd64) arch=amd64 ;;
     arm64|aarch64) arch=arm64 ;;
-    *) fail '不支持此 CPU 架构；仅提供 amd64 / arm64' ;;
+    *) fail 'Unsupported CPU architecture; only amd64 and arm64 are available' ;;
   esac
-  [ -n "$install_dir" ] || fail '--dir 不能为空'
+  [ -n "$install_dir" ] || fail '--dir cannot be empty'
   case "$install_dir" in /*) : ;; *) install_dir="$(pwd -P)/$install_dir" ;; esac
   while [ "${install_dir%/}" != "$install_dir" ]; do install_dir=${install_dir%/}; done
   name=${install_dir##*/}
-  case "$name" in ''|.|..) fail '请选择明确的新安装子目录' ;; esac
+  case "$name" in ''|.|..) fail 'Choose a new installation subdirectory' ;; esac
   parent=${install_dir%/*}
   [ -n "$parent" ] || parent=/
-  parent=$(cd "$parent" && pwd -P) || fail '安装目录的父目录不存在，请先创建'
+  parent=$(cd "$parent" && pwd -P) || fail 'The installation parent directory does not exist; create it first'
   install_dir="$parent/$name"
-  [ ! -e "$install_dir" ] && [ ! -L "$install_dir" ] || fail "目录已存在，未覆盖：${install_dir}；请使用 --dir 选择新目录"
+  [ ! -e "$install_dir" ] && [ ! -L "$install_dir" ] || fail "Directory already exists and was not changed: ${install_dir}; choose another with --dir"
   umask 077
-  work=$(mktemp -d "$parent/.telay-install.XXXXXX") || fail '无法创建临时目录'
+  work=$(mktemp -d "$parent/.telay-install.XXXXXX") || fail 'Could not create a temporary directory'
   trap cleanup EXIT
   trap 'exit 130' INT
   trap 'exit 143' TERM HUP
   binary="telay-${os}-${arch}"
   [ "$os" != windows ] || binary="${binary}.exe"
-  # 显式划定变量边界，避免旧 shell 将相邻 UTF-8 标点误识别为变量名。
-  printf '%s\n' "识别平台：${os} / ${arch}；正在使用 ${downloader} 下载…"
-  downloads=${TELAY_DOWNLOADS:-https://raw.githubusercontent.com/GitaiQAQ/telay/main/public/downloads}
-  download "$downloads/SHA256SUMS" "$work/SHA256SUMS" || fail '校验清单下载失败；未安装'
+  printf '%s\n' "Platform: ${os} / ${arch}; downloading with ${downloader}..."
+  downloads=${TELAY_DOWNLOADS:-https://github.com/GitaiQAQ/telay/releases/latest/download}
+  download "$downloads/SHA256SUMS" "$work/SHA256SUMS" || fail 'Could not download the checksum list; nothing was installed'
   expected=$(awk -v name="$binary" '
     $2 == name { count++; hash=tolower($1) }
     END {
       if (count != 1 || length(hash) != 64 || hash ~ /[^0-9a-f]/) exit 1
       print hash
     }
-  ' "$work/SHA256SUMS") || fail '校验清单缺少有效且唯一的平台 SHA-256'
-  download "$downloads/$binary" "$work/telay" || fail '连接器下载失败；未安装'
-  actual=$(digest "$work/telay") || fail '无法计算 SHA-256；未安装'
-  [ "$actual" = "$expected" ] || fail 'SHA-256 不一致，拒绝安装；请检查下载来源后重试'
-  printf '%s\n' 'SHA-256 校验通过（完整性校验，不是独立发行签名）。'
-  [ -s "$work/telay" ] || fail '连接器文件为空'
+  ' "$work/SHA256SUMS") || fail 'The checksum list has no unique valid SHA-256 for this platform'
+  download "$downloads/$binary" "$work/telay" || fail 'Could not download the connector; nothing was installed'
+  actual=$(digest "$work/telay") || fail 'Could not calculate SHA-256; nothing was installed'
+  [ "$actual" = "$expected" ] || fail 'SHA-256 mismatch; refusing to install an unverified download'
+  printf '%s\n' 'SHA-256 verified (integrity check, not an independent release signature).'
+  [ -s "$work/telay" ] || fail 'The connector file is empty'
   chmod 700 "$work/telay"
-  mkdir "$install_dir" || fail '无法创建安装目录；未覆盖已有文件'
-  mv "$work/telay" "$install_dir/telay" || fail "安装失败；请检查目录：${install_dir}"
-  printf '\n%s\n' "安装完成：$install_dir/telay" '未启动连接器。终端运行：'
+  mkdir "$install_dir" || fail 'Could not create the installation directory; no existing files were changed'
+  mv "$work/telay" "$install_dir/telay" || fail "Installation failed; check directory: ${install_dir}"
+  printf '\n%s\n' "Installed: $install_dir/telay" 'The connector was not started. Run:'
   quote "$install_dir/telay"; printf ' --web '; quote "$site"
   if [ -n "$upstream" ]; then printf ' --upstream '; quote "$upstream"; fi
   printf '\n'
-  printf '\n%s\n' '用于 DSH 时，启动命令额外加 --profile dsh。仅测速加 --probe-only。Ctrl-C 停止。'
+  printf '\n%s\n' 'For DSH, add --profile dsh. For a bandwidth probe, add --probe-only. Press Ctrl-C to stop.'
 }
 main "$@"

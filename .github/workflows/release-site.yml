@@ -3,8 +3,6 @@ name: Build and publish site
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - public/downloads/**
   workflow_dispatch:
 
 permissions:
@@ -33,14 +31,18 @@ jobs:
           go-version: '1.27.2'
       - run: pnpm install --frozen-lockfile
       - run: pnpm release
-      - name: Commit raw-download assets
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name 'Gitai'
-          git config user.email 'i@gitai.me'
-          git add -f public/downloads/telay-* public/downloads/SHA256SUMS public/downloads/THIRD_PARTY_LICENSES.txt
-          git add public/downloads/THIRD_PARTY_NOTICES.txt
-          git diff --cached --quiet || git commit -m "chore: update downloadable builds"
-          git push
+          tag="build-${GITHUB_SHA}"
+          assets=(release/telay-* release/LICENSE release/THIRD_PARTY_NOTICES.txt release/THIRD_PARTY_LICENSES.txt release/SHA256SUMS)
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "${assets[@]}" --clobber
+          else
+            gh release create "$tag" "${assets[@]}" --target "$GITHUB_SHA" \
+              --title "Telay ${GITHUB_SHA:0:7}" --notes "Automated build from main." --latest
+          fi
       - run: pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:
