@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body { @apply m-0 bg-paper font-sans text-ink antialiased; }
+html { color-scheme: light; scrollbar-color: #bcb6ad #f7f5f0; }
+button, a, input, summary, select { @apply transition-colors; }
+button:disabled { @apply cursor-not-allowed opacity-50; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible { @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-paper; }
+input { caret-color: #a74d35; }
+::selection { background: #e9d1c3; color: #302d29; }
+summary { @apply cursor-pointer; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+@layer components {
+  .relay-shell { @apply flex min-h-screen flex-col; min-height: 100svh; }
+  .btn { @apply relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-lg bg-accent px-5 py-3 text-sm font-medium text-white hover:bg-accent-dark disabled:hover:bg-accent; transition: background-color 180ms ease, transform 160ms ease, opacity 180ms ease; }
+  .btn:active:not(:disabled) { transform: scale(.99); }
+  .btn::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25%; height: 2px; background: currentColor; opacity: 0; }
+  .btn[data-state="busy"]::after { opacity: .4; animation: telay-wait 1.6s ease-in-out infinite; }
+  .button-icon { transition: transform 180ms ease; }
+  .btn:hover:not(:disabled) .button-icon { transform: translateX(3px); }
+  .btn[data-state="ready"] .button-icon { animation: telay-arrive 220ms ease-out; }
+  .field { @apply min-h-14 rounded-lg border border-line bg-white px-4 py-4 text-sm placeholder:text-muted disabled:bg-surface; }
+  .field[aria-invalid="true"] { @apply border-danger; }
+  .quiet-button { @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-3 py-2 text-sm hover:bg-surface; }
+  .recent-select { @apply min-h-11 min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-2 text-xs text-muted hover:bg-surface; max-width: 100%; }
+  .text-link { @apply underline decoration-line underline-offset-4 hover:text-ink hover:decoration-ink; }
+  .disclosure > summary { @apply flex min-h-14 items-center justify-between py-4 text-sm text-muted hover:text-ink; list-style: none; }
+  .disclosure > summary::-webkit-details-marker, .action-menu > summary::-webkit-details-marker { display: none; }
+  .disclosure > summary::after { content: ''; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); margin-right: 4px; }
+  .disclosure[open] > summary::after { transform: rotate(225deg); }
+  .action-menu > summary { list-style: none; }
+  .menu-panel { @apply absolute right-0 z-10 mt-1 w-72 rounded-xl border border-line bg-paper p-2; max-width: calc(100vw - 48px); }
+  .menu-item { @apply flex min-h-11 w-full items-center rounded-md px-2 py-3 text-left text-xs hover:bg-surface; }
+  .code-block { @apply rounded-lg bg-surface p-4; }
+}
+@keyframes telay-wait { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+@keyframes telay-arrive { from { opacity: 0; transform: translateX(-3px); } to { opacity: 1; transform: translateX(0); } }

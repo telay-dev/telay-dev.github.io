@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+connector/dsh-remote
+connector/vendor/
+release/
+public/downloads/*.zip
+public/downloads/SHA256SUMS
+public/downloads/telay-*
+public/downloads/connector-source.zip
