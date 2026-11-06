@@ -16,7 +16,7 @@ export default defineConfig({
   tools: {
     htmlPlugin(config, {entryName}) {
       const standalone = entryName === 'standalone';
-      config.template = standalone ? './__relay/index.html' : './index.html';
+      config.template = standalone ? './src/standalone.html' : './index.html';
       config.filename = standalone ? '__relay/index.html' : 'index.html';
     },
   },

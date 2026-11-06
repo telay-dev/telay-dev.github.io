@@ -130,7 +130,7 @@ const files = ['src/App.tsx', 'src/QuickInstall.tsx', 'src/RelayHelp.tsx', 'src/
 for (const file of files) {
   for (const match of read(file).matchAll(/\b(?:t|tr)\('([^']+)'/g)) assert.ok(keys.includes(match[1]), `${file}:${match[1]}`);
 }
-for (const match of read('__relay/index.html').matchAll(/data-i18n(?:-placeholder|-aria-label)?="([^"]+)"/g)) {
+for (const match of read('src/standalone.html').matchAll(/data-i18n(?:-placeholder|-aria-label)?="([^"]+)"/g)) {
   assert.ok(keys.includes(match[1]), `独立入口：${match[1]}`);
 }
 
