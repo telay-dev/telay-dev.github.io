@@ -80,15 +80,22 @@
               }),
             );
           }
-          if (frame.op === "ws-error") this.emit("error", new Event("error"));
           if (frame.op === "ws-closed" || frame.op === "ws-error") {
+            if (this.readyState === 3) return;
+            const code = frame.code ?? (frame.op === "ws-error" ? 1006 : 1000);
             sockets.delete(this);
             this.readyState = 3;
+            this._parts = undefined;
+            if (frame.op === "ws-error" || code === 1006)
+              this.emit("error", new Event("error"));
             this.emit(
               "close",
               new CloseEvent("close", {
-                code: frame.op === "ws-error" ? 1006 : 1000,
-                wasClean: frame.op !== "ws-error",
+                code,
+                reason: frame.reason || "",
+                wasClean: frame.code === undefined
+                  ? frame.op !== "ws-error"
+                  : frame.wasClean === true,
               }),
             );
           }

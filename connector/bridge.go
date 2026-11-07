@@ -36,6 +36,9 @@ type Frame struct {
 	Encoding     string            `json:"encoding,omitempty"`
 	Protocols    []string          `json:"protocols,omitempty"`
 	Protocol     string            `json:"protocol,omitempty"`
+	Code         int               `json:"code,omitempty"`
+	Reason       string            `json:"reason,omitempty"`
+	WasClean     bool              `json:"wasClean,omitempty"`
 	SDP          string            `json:"sdp,omitempty"`
 	Stream       bool              `json:"stream,omitempty"`
 	Chunked      bool              `json:"chunked,omitempty"`
@@ -177,25 +180,7 @@ func (b *Bridge) Serve(c net.Conn) {
 				sockets[f.ID] = s
 				socketMu.Unlock()
 				defer func() { s.CloseNow(); socketMu.Lock(); delete(sockets, f.ID); socketMu.Unlock() }()
-				send(Frame{ID: f.ID, Op: "ws-opened", Protocol: s.Subprotocol()})
-				for {
-					typ, data, err := s.Read(ctx)
-					if err != nil {
-						send(Frame{ID: f.ID, Op: "ws-closed"})
-						return
-					}
-					if f.Chunked && len(data) > resultChunk {
-						send(Frame{ID: f.ID, Op: "ws-data-head", Type: int(typ)})
-						for len(data) > 0 {
-							n := min(len(data), resultChunk)
-							send(Frame{ID: f.ID, Op: "ws-data-part", Body: data[:n]})
-							data = data[n:]
-						}
-						send(Frame{ID: f.ID, Op: "ws-data-end"})
-					} else {
-						send(Frame{ID: f.ID, Op: "ws-data", Type: int(typ), Body: data})
-					}
-				}
+				forwardWebSocket(ctx, s, f, send)
 			}(f)
 		case "ws-send", "ws-close":
 			socketMu.Lock()

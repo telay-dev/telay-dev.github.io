@@ -23,6 +23,9 @@ type Frame = {
   encoding?: string;
   protocols?: string[];
   protocol?: string;
+  code?: number;
+  reason?: string;
+  wasClean?: boolean;
   sdp?: string;
   stream?: boolean;
   chunked?: boolean;
@@ -384,7 +387,7 @@ export class Tunnel {
     }
     this.pending.clear();
     for (const [id, l] of this.listeners) {
-      l({ id, op: "ws-closed" });
+      l({ id, op: "ws-error", error: "Tunnel closed." });
     }
     this.listeners.clear();
     this.onClose?.();
