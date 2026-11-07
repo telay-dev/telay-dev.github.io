@@ -12,7 +12,7 @@ export async function localDirect(
   const peer = new RTCPeerConnection({ iceServers: [] });
   const channel = peer.createDataChannel("relay-v1", { ordered: true });
   channel.binaryType = "arraybuffer";
-  channel.bufferedAmountLowThreshold = 65536;
+  channel.bufferedAmountLowThreshold = 16384;
   let ended = false;
   const chunks: Uint8Array[] = [];
   let queued = 0;
@@ -92,7 +92,7 @@ export async function localDirect(
       for (let offset = 0; offset < data.length; offset += 16384) {
         if (channel.readyState !== "open")
           throw new Error("Direct connection closed.");
-        if (channel.bufferedAmount > 262144)
+        while (channel.bufferedAmount > 65536)
           await new Promise<void>((resolve, reject) => {
             const cleanup = () => {
               clearTimeout(timer);

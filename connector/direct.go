@@ -55,7 +55,7 @@ func (b *Bridge) offerDirect(sdp string) (string, error) {
 		var once sync.Once
 		closeAll := func() { once.Do(func() { close(done); server.Close(); transport.Close(); go peer.Close() }) }
 		low := make(chan struct{}, 1)
-		dc.SetBufferedAmountLowThreshold(65536)
+		dc.SetBufferedAmountLowThreshold(16384)
 		dc.OnBufferedAmountLow(func() {
 			select {
 			case low <- struct{}{}:
@@ -84,7 +84,7 @@ func (b *Bridge) offerDirect(sdp string) (string, error) {
 					if err != nil {
 						return
 					}
-					if dc.BufferedAmount() > 262144 {
+					for dc.BufferedAmount() > 65536 {
 						select {
 						case <-low:
 						case <-done:
