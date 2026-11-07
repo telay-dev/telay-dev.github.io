@@ -307,3 +307,30 @@ console.log(
   assert.equal(forwarded.headers["x-orchestrator-request"], "1");
   assert.equal(forwarded.headers.authorization, "Bearer test");
 }
+{
+  let receive;
+  const relay = { openSocket(_path, listener) { receive = listener; return 1; } };
+  const window = { tailcatRelay: relay, relayI18n: { t: (key) => key }, WebSocket: class {} };
+  const runtime = read("public/__relay/runtime.js").split("  // Expose no DSH-specific globals;")[0] + "})();";
+  vm.runInNewContext(runtime, {
+    window, location: new URL("https://telay.test/__relay/view/"), URL,
+    EventTarget, Event, MessageEvent, DOMException, TextEncoder, TextDecoder,
+    Uint8Array, ArrayBuffer, Blob, atob, btoa,
+  });
+  const socket = new window.WebSocket("wss://telay.test/ws");
+  const messages = [];
+  socket.onmessage = (event) => messages.push(event.data);
+  receive({ op: "ws-opened" });
+  const text = Buffer.from("Hello 🌱 world");
+  receive({ op: "ws-data-head", type: 1 });
+  receive({ op: "ws-data-part", body: text.subarray(0, 6).toString("base64") });
+  receive({ op: "ws-data-part", body: text.subarray(6).toString("base64") });
+  assert.equal(messages.length, 0);
+  receive({ op: "ws-data-end" });
+  assert.equal(messages[0], text.toString());
+  socket.binaryType = "arraybuffer";
+  receive({ op: "ws-data-head", type: 2 });
+  receive({ op: "ws-data-part", body: Buffer.from([0, 255, 128]).toString("base64") });
+  receive({ op: "ws-data-end" });
+  assert.deepEqual([...new Uint8Array(messages[1])], [0, 255, 128]);
+}

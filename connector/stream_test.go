@@ -85,7 +85,7 @@ func TestSSEStreamingCancellationAndParallelHTTP(t *testing.T) {
 	}
 	time.Sleep(60 * time.Millisecond)
 	encoder.Encode(Frame{ID: 3, Op: "ping"})
-	if pong := readFrame(t, decoder); pong.Op != "pong" || len(pong.Capabilities) != 3 {
+	if pong := readFrame(t, decoder); pong.Op != "pong" || len(pong.Capabilities) != 4 {
 		t.Fatal("missing capabilities")
 	}
 	encoder.Encode(Frame{ID: 1, Op: "http-pull"})
@@ -225,5 +225,50 @@ func TestChunkedResultAllowsParallelPing(t *testing.T) {
 	}
 	if !bytes.Equal(received, payload) {
 		t.Fatal("chunked response changed")
+	}
+}
+
+func TestWebSocketChunkingAllowsParallelPing(t *testing.T) {
+	payload := make([]byte, 512<<10)
+	rand.New(rand.NewSource(7)).Read(payload)
+	encoder, decoder, _ := testBridge(t, func(w http.ResponseWriter, r *http.Request) {
+		ws, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer ws.CloseNow()
+		if err := ws.Write(r.Context(), websocket.MessageBinary, payload); err != nil {
+			return
+		}
+		<-r.Context().Done()
+	})
+	encoder.Encode(Frame{ID: 1, Op: "ws-open", Path: "/ws", Chunked: true})
+	if f := readFrame(t, decoder); f.Op != "ws-opened" {
+		t.Fatalf("expected ws-opened, got %s", f.Op)
+	}
+	if f := readFrame(t, decoder); f.Op != "ws-data-head" || f.Type != 2 {
+		t.Fatalf("expected binary message head, got %+v", f)
+	}
+	encoder.Encode(Frame{ID: 2, Op: "ping"})
+	var received []byte
+	pong := false
+	for {
+		f := readFrame(t, decoder)
+		switch f.Op {
+		case "pong":
+			pong = true
+		case "ws-data-part":
+			received = append(received, f.Body...)
+		case "ws-data-end":
+			if !pong {
+				t.Fatal("large WebSocket message blocked ping")
+			}
+			if !bytes.Equal(received, payload) {
+				t.Fatal("WebSocket message changed")
+			}
+			return
+		default:
+			t.Fatalf("unexpected frame %s", f.Op)
+		}
 	}
 }

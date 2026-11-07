@@ -103,6 +103,7 @@ export class Tunnel {
   private relayConn?: Conn;
   private streaming = false;
   private chunked = false;
+  private socketChunks = false;
   transport: "relay" | "direct" = "relay";
   hostname = "";
   onTransport?: () => void;
@@ -132,6 +133,7 @@ export class Tunnel {
     this.hostname = hello.hostname || "";
     this.streaming = !!hello.capabilities?.includes("http-stream-v1");
     this.chunked = !!hello.capabilities?.includes("http-chunks-v1");
+    this.socketChunks = !!hello.capabilities?.includes("ws-chunks-v1");
     this.cache = hello.capabilities?.includes("http-cache-v1")
       ? await deviceCache(addr)
       : undefined;
@@ -298,7 +300,7 @@ export class Tunnel {
   ) {
     const id = this.next++;
     this.listeners.set(id, listener);
-    void this.send({ id, op: "ws-open", path, protocols }).catch(() =>
+    void this.send({ id, op: "ws-open", path, protocols, chunked: this.socketChunks }).catch(() =>
       listener({ id, op: "ws-error", error: "Tunnel closed." }),
     );
     return id;

@@ -48,6 +48,19 @@
       this._id = relay.openSocket(
         path,
         (frame) => {
+          if (frame.op === "ws-data-head") {
+            this._parts = [];
+            this._partType = frame.type;
+            return;
+          }
+          if (frame.op === "ws-data-part") {
+            this._parts.push(frame.body || "");
+            return;
+          }
+          if (frame.op === "ws-data-end") {
+            frame = { op: "ws-data", type: this._partType, body: this._parts.join("") };
+            this._parts = undefined;
+          }
           if (frame.op === "ws-opened") {
             this.protocol = frame.protocol || "";
             this.readyState = 1;

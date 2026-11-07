@@ -112,7 +112,7 @@ func (b *Bridge) Serve(c net.Conn) {
 				send(Frame{ID: f.ID, Op: "result", SDP: answer})
 			}
 		case "ping":
-			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1", "http-chunks-v1"}, Hostname: hostname})
+			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1", "http-chunks-v1", "ws-chunks-v1"}, Hostname: hostname})
 		case "probe":
 			if f.Size < 1 || f.Size > 1<<20 {
 				send(Frame{ID: f.ID, Op: "result", Error: "bandwidth probes are limited to 1 MiB per request"})
@@ -184,7 +184,17 @@ func (b *Bridge) Serve(c net.Conn) {
 						send(Frame{ID: f.ID, Op: "ws-closed"})
 						return
 					}
-					send(Frame{ID: f.ID, Op: "ws-data", Type: int(typ), Body: data})
+					if f.Chunked && len(data) > resultChunk {
+						send(Frame{ID: f.ID, Op: "ws-data-head", Type: int(typ)})
+						for len(data) > 0 {
+							n := min(len(data), resultChunk)
+							send(Frame{ID: f.ID, Op: "ws-data-part", Body: data[:n]})
+							data = data[n:]
+						}
+						send(Frame{ID: f.ID, Op: "ws-data-end"})
+					} else {
+						send(Frame{ID: f.ID, Op: "ws-data", Type: int(typ), Body: data})
+					}
 				}
 			}(f)
 		case "ws-send", "ws-close":
