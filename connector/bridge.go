@@ -240,9 +240,10 @@ func (b *Bridge) openHTTP(ctx context.Context, f Frame, streaming bool) (*http.R
 	}
 	for k, v := range f.Headers {
 		switch strings.ToLower(k) {
-		case "content-type", "accept", "accept-language", "range", "x-csrf-token", "x-xsrf-token", "cache-control", "pragma", "if-none-match", "if-modified-since", "if-match", "if-unmodified-since", "if-range", "last-event-id":
-			req.Header.Set(k, v)
+		case "host", "origin", "cookie", "connection", "proxy-connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade", "content-length", "accept-encoding":
+			continue
 		}
+		req.Header.Set(k, v)
 	}
 	req.Header.Set("Origin", b.upstream.Scheme+"://"+b.upstream.Host)
 	client := *b.client

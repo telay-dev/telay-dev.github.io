@@ -68,8 +68,11 @@ func TestHTTPTrustAndAuthentication(t *testing.T) {
 		if r.Header.Get("Origin") != "http://"+r.Host {
 			t.Error("origin trust mismatch")
 		}
-		if r.Header.Get("Authorization") != "" {
-			t.Error("forwarded unsafe authorization")
+		if r.Header.Get("Authorization") != "Bearer test" || r.Header.Get("X-Orchestrator-Request") != "1" {
+			t.Error("application request headers were not forwarded")
+		}
+		if r.Header.Get("Connection") == "hostile" {
+			t.Error("forwarded hop-by-hop header")
 		}
 		http.SetCookie(w, &http.Cookie{Name: "other-secret", Value: "hidden"})
 		w.Header().Set("Content-Type", "text/plain")
@@ -80,7 +83,7 @@ func TestHTTPTrustAndAuthentication(t *testing.T) {
 	jar, _ := cookiejar.New(nil)
 	jar.SetCookies(u, []*http.Cookie{{Name: "dsh-test", Value: "secret"}})
 	b := &Bridge{upstream: u, client: &http.Client{Jar: jar}}
-	result := b.request(context.Background(), Frame{Path: "/api/check", Method: "POST", Headers: map[string]string{"Authorization": "evil"}})
+	result := b.request(context.Background(), Frame{Path: "/api/check", Method: "POST", Headers: map[string]string{"Authorization": "Bearer test", "X-Orchestrator-Request": "1", "Connection": "hostile"}})
 	if result.Status != 200 || string(result.Body) != "real upstream" || result.Headers["Set-Cookie"] != "" {
 		t.Fatalf("bad response: %+v", result)
 	}

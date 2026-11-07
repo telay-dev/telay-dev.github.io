@@ -53,25 +53,7 @@ self.addEventListener("fetch", (event) => {
         const body = ["GET", "HEAD"].includes(event.request.method)
           ? ""
           : encode(new Uint8Array(await event.request.arrayBuffer()));
-        const headers = {};
-        for (const key of [
-          "content-type",
-          "accept",
-          "accept-language",
-          "range",
-          "x-csrf-token",
-          "x-xsrf-token",
-          "cache-control",
-          "pragma",
-          "if-none-match",
-          "if-modified-since",
-          "if-match",
-          "if-unmodified-since",
-          "if-range",
-          "last-event-id",
-        ])
-          if (event.request.headers.has(key))
-            headers[key] = event.request.headers.get(key);
+        const headers = Object.fromEntries(event.request.headers);
         const path =
           (url.pathname.startsWith("/__relay/view/")
             ? url.pathname.slice("/__relay/view".length)

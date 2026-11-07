@@ -277,3 +277,33 @@ function portHarness(request, signal = new AbortController().signal) {
 console.log(
   "PASS streaming: early headers, long-lived streams, one-chunk backpressure, ports, cancellation, timeout, disconnect errors, ordinary responses",
 );
+{
+  const handlers = {};
+  let forwarded;
+  const worker = {
+    location: new URL("https://telay.test/"),
+    addEventListener: (type, fn) => { handlers[type] = fn; },
+    importScripts() {},
+    clients: { get: async () => ({
+      postMessage(_message, ports) { ports[0].postMessage({ active: true }); },
+    }) },
+    relayHTTPResponse(_event, _target, message) {
+      forwarded = message;
+      return new Response("ok");
+    },
+  };
+  vm.runInNewContext(read("public/bridge-sw.js"), {
+    self: worker, MessageChannel, URL, Response, Uint8Array, btoa, setTimeout, clearTimeout,
+  });
+  let response;
+  handlers.fetch({
+    request: new Request("https://telay.test/orchestrator/api/state", {
+      headers: { "x-orchestrator-request": "1", authorization: "Bearer test" },
+    }),
+    clientId: "test",
+    respondWith(value) { response = value; },
+  });
+  await response;
+  assert.equal(forwarded.headers["x-orchestrator-request"], "1");
+  assert.equal(forwarded.headers.authorization, "Bearer test");
+}

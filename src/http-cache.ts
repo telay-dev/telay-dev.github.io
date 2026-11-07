@@ -15,22 +15,6 @@ type OriginRequest = (
 type Saved = { response: HTTPResult; policy: CachePolicy.CachePolicyObject };
 const prefix = "relay-http-v1-";
 const options = { shared: false, cacheHeuristic: 0, immutableMinTimeToLive: 0 };
-export const forwardedHeaders = [
-  "content-type",
-  "accept",
-  "accept-language",
-  "range",
-  "x-csrf-token",
-  "x-xsrf-token",
-  "cache-control",
-  "pragma",
-  "if-none-match",
-  "if-modified-since",
-  "if-match",
-  "if-unmodified-since",
-  "if-range",
-  "last-event-id",
-];
 const lower = (headers: Record<string, string>) =>
   Object.fromEntries(
     Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]),
@@ -52,7 +36,9 @@ const cacheable = (response: HTTPResult) => {
     !h["content-type"]?.toLowerCase().includes("text/event-stream") &&
     response.status === 200 &&
     response.body.length <= 12 * 1024 * 1024 &&
-    vary.every((name) => forwardedHeaders.includes(name)) &&
+    vary.every(
+      (name) => !["*", "cookie", "origin", "host", "accept-encoding", "user-agent"].includes(name),
+    ) &&
     !!(h["cache-control"] || h.expires || h.etag || h["last-modified"])
   );
 };
@@ -108,6 +94,7 @@ export class HTTPCache {
     if (
       method !== "GET" ||
       requestHeaders.range ||
+      requestHeaders.authorization ||
       Object.keys(requestHeaders).some((key) => key.startsWith("if-"))
     ) {
       if (mode === "only-if-cached")
