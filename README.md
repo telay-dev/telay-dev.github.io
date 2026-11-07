@@ -1,5 +1,7 @@
 # Telay
 
+![Telay connects a browser to a local web server through direct P2P or a DERP relay](docs/images/telay-overview.png)
+
 Connect to a local web service from another device through a browser. The Go connector supports HTTP, WebSocket, and server-sent events. It uses WebRTC when possible and DERP relay otherwise.
 
 ## Quick start
