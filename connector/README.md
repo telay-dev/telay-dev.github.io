@@ -13,6 +13,10 @@ go build -o telay .
 
 Omit `--upstream` to enter the URL interactively. See `telay --help` for all options. Keep the printed pairing address private.
 
+Pairing identities are saved by default under the OS user configuration directory in `telay/identities/`. Each upstream service gets its own identity file; changes to the initial authentication query do not change the identity. The connector prints the file path at startup. Restarting with the same file reuses the exact pairing address, although active connections still close and the browser must reconnect. Upstream authentication is established again from the startup URL; upstream cookies are not persisted.
+
+Use `--state /path/to/identity.json` to select a file explicitly, or `--ephemeral` to create a temporary identity without saving it. Identity files contain private keys and must stay local. Only one connector can use a file at a time. To rotate the pairing identity, stop the connector and choose a new state file. An old pairing address alone cannot recover an identity whose private key was never saved.
+
 Build and check with Go 1.27.2+:
 
 ```sh

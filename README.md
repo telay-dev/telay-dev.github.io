@@ -18,6 +18,8 @@ npx telay-cli --web https://telay.js.org --upstream http://127.0.0.1:3080/
 
 Or install it globally with `npm install -g telay-cli` and run `telay --web https://telay.js.org --upstream http://127.0.0.1:3080/`. Prebuilt executables are also available from [GitHub Releases](https://github.com/telay-dev/telay-dev.github.io/releases/latest).
 
+The connector saves its pairing identity locally and reuses the same pairing address after restart. Active connections still need to reconnect. Use `--state /path/to/identity.json` to select an identity file, or `--ephemeral` for a temporary pairing address. See [connector usage](connector/README.md) for storage and recovery details.
+
 Open [telay.js.org](https://telay.js.org) and enter the pairing address printed by the connector. Keep the address private; it grants access to the configured service.
 
 ## Development

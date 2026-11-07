@@ -11,7 +11,9 @@ import (
 
 type options struct {
 	Upstream, Web, Profile string
+	State                  string
 	Probe                  bool
+	Ephemeral              bool
 }
 
 func parseOptions(args []string, output io.Writer) (options, error) {
@@ -24,8 +26,10 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 	fs.StringVar(&legacyWeb, "site", "", "deprecated alias for --web")
 	fs.StringVar(&o.Profile, "profile", "generic", "generic or dsh")
 	fs.BoolVar(&o.Probe, "probe-only", false, "run a bandwidth test only")
+	fs.StringVar(&o.State, "state", "", "identity state file (default: per-upstream file in the user config directory)")
+	fs.BoolVar(&o.Ephemeral, "ephemeral", false, "use a new temporary pairing identity")
 	fs.Usage = func() {
-		fmt.Fprintln(output, "Telay\n\nUsage: telay --web https://telay.js.org --upstream 'http://127.0.0.1:3080/'\n\n  --web URL              Telay site origin\n  --upstream URL         Local HTTP service URL; prompt if omitted\n  --profile generic|dsh  Integration profile (default: generic)\n  --probe-only           Run a bandwidth test only\n  -h, --help             Show help\n\nThird-party license texts:\nhttps://github.com/telay-dev/telay-dev.github.io/releases/latest/download/THIRD_PARTY_LICENSES.txt")
+		fmt.Fprintln(output, "Telay\n\nUsage: telay --web https://telay.js.org --upstream 'http://127.0.0.1:3080/'\n\n  --web URL              Telay site origin\n  --upstream URL         Local HTTP service URL; prompt if omitted\n  --profile generic|dsh  Integration profile (default: generic)\n  --state FILE           Pairing identity file (default: per upstream in user config directory)\n  --ephemeral            Use a new temporary pairing identity\n  --probe-only           Run a bandwidth test only\n  -h, --help             Show help\n\nThird-party license texts:\nhttps://github.com/telay-dev/telay-dev.github.io/releases/latest/download/THIRD_PARTY_LICENSES.txt")
 	}
 	if err := fs.Parse(args); err != nil {
 		return o, err
@@ -49,6 +53,10 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 	}
 	o.Web = strings.TrimRight(o.Web, "/")
 	o.Upstream = strings.TrimSpace(o.Upstream)
+	o.State = strings.TrimSpace(o.State)
+	if o.Ephemeral && o.State != "" {
+		return o, fmt.Errorf("--state and --ephemeral cannot be used together")
+	}
 	if o.Profile != "generic" && o.Profile != "dsh" {
 		return o, fmt.Errorf("--profile must be generic or dsh")
 	}

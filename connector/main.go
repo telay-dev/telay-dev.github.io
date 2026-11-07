@@ -86,11 +86,39 @@ func main() {
 			bridge.Serve(c)
 		}
 	}}
+	var identity *connectorIdentity
+	var statePath string
+	if !opts.Ephemeral {
+		statePath, err = identityPath(opts)
+		if err != nil {
+			log.Fatal("cannot locate pairing identity: ", err)
+		}
+		unlock, err := lockIdentity(statePath)
+		if err != nil {
+			log.Fatal("cannot lock pairing identity: ", err)
+		}
+		defer unlock()
+		identity, err = loadIdentity(statePath)
+		if err != nil {
+			log.Fatal("cannot restore pairing identity: ", err)
+		}
+		identity.configure(s)
+	}
 	if err := s.Start(); err != nil {
 		log.Fatal("failed to connect to the public DERP relay: ", err)
 	}
 	defer s.Close()
 	addr := string(s.TailcatAddr())
+	if identity != nil {
+		if identity.Address != "" && string(identity.Address) != addr {
+			log.Fatal("restored identity did not reproduce the saved pairing address")
+		}
+		identity.Address = tailcat.Addr(addr)
+		if err := saveIdentity(statePath, identity); err != nil {
+			log.Fatal("cannot save pairing identity: ", err)
+		}
+		fmt.Println("Pairing identity file: " + statePath)
+	}
 	fmt.Println("\nTelay is running · direct connection preferred")
 	fmt.Println("The pairing address grants access. Keep it private.")
 	fmt.Println("Pairing address:\n" + addr)
@@ -101,7 +129,11 @@ func main() {
 			fmt.Println("\nOpen in a browser:\n" + u.String())
 		}
 	}
-	fmt.Println("\nPress Ctrl-C to stop. Restarting creates a new pairing address.")
+	if opts.Ephemeral {
+		fmt.Println("\nPress Ctrl-C to stop. This temporary pairing address changes on restart.")
+	} else {
+		fmt.Println("\nPress Ctrl-C to stop. Restarting with the same identity file reuses this pairing address.")
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	<-ctx.Done()
