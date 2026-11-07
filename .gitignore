@@ -7,3 +7,4 @@ connector/vendor/
 release/
 .npmrc
 npm-dist/
+.DS_Store
