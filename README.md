@@ -1,5 +1,9 @@
 # Telay
 
+[![Build and publish site](https://github.com/telay-dev/telay-dev.github.io/actions/workflows/release-site.yml/badge.svg)](https://github.com/telay-dev/telay-dev.github.io/actions/workflows/release-site.yml)
+[![npm version](https://img.shields.io/npm/v/telay-cli)](https://www.npmjs.com/package/telay-cli)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 ![Telay connects a browser to a local web server through direct P2P or a DERP relay](docs/images/telay-overview.png)
 
 Connect to a local web service from another device through a browser. The Go connector supports HTTP, WebSocket, and server-sent events. It uses WebRTC when possible and DERP relay otherwise.
