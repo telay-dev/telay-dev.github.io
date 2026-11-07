@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -84,7 +85,7 @@ func TestSSEStreamingCancellationAndParallelHTTP(t *testing.T) {
 	}
 	time.Sleep(60 * time.Millisecond)
 	encoder.Encode(Frame{ID: 3, Op: "ping"})
-	if pong := readFrame(t, decoder); pong.Op != "pong" || len(pong.Capabilities) != 2 {
+	if pong := readFrame(t, decoder); pong.Op != "pong" || len(pong.Capabilities) != 3 {
 		t.Fatal("missing capabilities")
 	}
 	encoder.Encode(Frame{ID: 1, Op: "http-pull"})
@@ -191,5 +192,38 @@ func TestWebSocketTextBinaryAndSubprotocol(t *testing.T) {
 	encoder.Encode(Frame{ID: 1, Op: "ws-close"})
 	if f := readFrame(t, decoder); f.Op != "ws-closed" {
 		t.Fatal("WS close failed")
+	}
+}
+
+func TestChunkedResultAllowsParallelPing(t *testing.T) {
+	payload := make([]byte, 512<<10)
+	rand.New(rand.NewSource(1)).Read(payload)
+	encoder, decoder, _ := testBridge(t, func(w http.ResponseWriter, r *http.Request) { w.Write(payload) })
+	encoder.Encode(Frame{ID: 1, Op: "http", Path: "/large", Method: "GET", Stream: true, Chunked: true})
+	if f := readFrame(t, decoder); f.Op != "result-head" {
+		t.Fatalf("expected result head, got %s", f.Op)
+	}
+	encoder.Encode(Frame{ID: 2, Op: "ping"})
+	var received []byte
+	pongBeforeEnd := false
+	for {
+		f := readFrame(t, decoder)
+		if f.Op == "pong" {
+			pongBeforeEnd = true
+			continue
+		}
+		if f.Op == "result-end" {
+			break
+		}
+		if f.Op != "result-part" || len(f.Body) > resultChunk {
+			t.Fatalf("invalid chunk: %+v", f)
+		}
+		received = append(received, f.Body...)
+	}
+	if !pongBeforeEnd {
+		t.Fatal("large response blocked ping")
+	}
+	if !bytes.Equal(received, payload) {
+		t.Fatal("chunked response changed")
 	}
 }

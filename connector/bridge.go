@@ -38,6 +38,7 @@ type Frame struct {
 	Protocol     string            `json:"protocol,omitempty"`
 	SDP          string            `json:"sdp,omitempty"`
 	Stream       bool              `json:"stream,omitempty"`
+	Chunked      bool              `json:"chunked,omitempty"`
 	Capabilities []string          `json:"capabilities,omitempty"`
 	Hostname     string            `json:"hostname,omitempty"`
 }
@@ -111,7 +112,7 @@ func (b *Bridge) Serve(c net.Conn) {
 				send(Frame{ID: f.ID, Op: "result", SDP: answer})
 			}
 		case "ping":
-			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1"}, Hostname: hostname})
+			send(Frame{ID: f.ID, Op: "pong", Capabilities: []string{"http-stream-v1", "http-cache-v1", "http-chunks-v1"}, Hostname: hostname})
 		case "probe":
 			if f.Size < 1 || f.Size > 1<<20 {
 				send(Frame{ID: f.ID, Op: "result", Error: "bandwidth probes are limited to 1 MiB per request"})

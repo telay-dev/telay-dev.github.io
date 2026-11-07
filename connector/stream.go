@@ -9,7 +9,8 @@ import (
 )
 
 const streamChunk = 32 << 10
-const maxHTTPStreams = 16
+const maxHTTPStreams = 64
+const resultChunk = 32766
 
 type httpStream struct {
 	cancel context.CancelFunc
@@ -77,7 +78,22 @@ func (s *httpStreams) start(parent context.Context, b *Bridge, f Frame, send fun
 		if contentType != "text/event-stream" || f.Method == "HEAD" || resp.StatusCode == 204 || resp.StatusCode == 205 || resp.StatusCode == 304 {
 			result := bufferedHTTP(resp)
 			result.ID, result.Op = f.ID, "result"
-			send(result)
+			if f.Chunked && len(result.Body) > resultChunk {
+				body := result.Body
+				result.Op, result.Body = "result-head", nil
+				send(result)
+				for len(body) > 0 {
+					if ctx.Err() != nil {
+						return
+					}
+					n := min(len(body), resultChunk)
+					send(Frame{ID: f.ID, Op: "result-part", Body: body[:n]})
+					body = body[n:]
+				}
+				send(Frame{ID: f.ID, Op: "result-end"})
+			} else {
+				send(result)
+			}
 			return
 		}
 		timer.Stop()

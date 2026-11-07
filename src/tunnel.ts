@@ -25,6 +25,7 @@ type Frame = {
   protocol?: string;
   sdp?: string;
   stream?: boolean;
+  chunked?: boolean;
   capabilities?: string[];
   hostname?: string;
 };
@@ -101,6 +102,7 @@ export class Tunnel {
   private conn?: Conn;
   private relayConn?: Conn;
   private streaming = false;
+  private chunked = false;
   transport: "relay" | "direct" = "relay";
   hostname = "";
   onTransport?: () => void;
@@ -129,6 +131,7 @@ export class Tunnel {
     const hello = await this.request({ op: "ping" });
     this.hostname = hello.hostname || "";
     this.streaming = !!hello.capabilities?.includes("http-stream-v1");
+    this.chunked = !!hello.capabilities?.includes("http-chunks-v1");
     this.cache = hello.capabilities?.includes("http-cache-v1")
       ? await deviceCache(addr)
       : undefined;
@@ -234,7 +237,7 @@ export class Tunnel {
         signal,
       );
       void this.send(
-        { id, op: "http", path, method, headers, body, stream: true },
+        { id, op: "http", path, method, headers, body, stream: true, chunked: this.chunked },
         conn,
       ).catch((error) =>
         this.listeners.get(id)?.({

@@ -24,6 +24,8 @@ export function receiveHTTP(
     let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
     let finishPull: (() => void) | undefined;
     let finished = false;
+    let resultHead: HTTPFrame | undefined;
+    const parts: string[] = [];
     const cleanup = () => {
       finished = true;
       clearTimeout(timer);
@@ -46,15 +48,33 @@ export function receiveHTTP(
       cancel();
       fail("Request canceled.");
     };
-    const timer = setTimeout(() => {
+    const timeout = () => {
       cancel();
       fail("Connector response timed out.");
-    }, timeoutMs);
+    };
+    let timer = setTimeout(timeout, timeoutMs);
+    const progress = () => {
+      clearTimeout(timer);
+      timer = setTimeout(timeout, timeoutMs);
+    };
     listen((frame) => {
       if (finished) return;
       if (frame.error || frame.op === "ws-error" || frame.op === "ws-closed") {
         fail(frame.error || "Tunnel closed.");
         return;
+      }
+      if (frame.op === "result-head") {
+        progress();
+        resultHead = frame;
+        return;
+      }
+      if (frame.op === "result-part") {
+        progress();
+        parts.push(frame.body || "");
+        return;
+      }
+      if (frame.op === "result-end" && resultHead) {
+        frame = { ...resultHead, op: "result", body: parts.join("") };
       }
       if (frame.op === "result") {
         cleanup();

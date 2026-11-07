@@ -2,11 +2,13 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import { gzipSync } from "node:zlib";
 import ts from "typescript";
 const read = (file) =>
   readFileSync(new URL("../" + file, import.meta.url), "utf8");
 const globals = {
   ReadableStream,
+  DecompressionStream,
   TextDecoder,
   TextEncoder,
   Uint8Array,
@@ -69,6 +71,37 @@ function streamHarness(signal, timeout = 100) {
   };
 }
 {
+  const h = streamHarness();
+  const body = Buffer.from("chunked response");
+  h.emit({ op: "result-head", status: 200, headers: { "Content-Type": "text/plain" } });
+  h.emit({ op: "result-part", body: body.subarray(0, 6).toString("base64") });
+  h.emit({ op: "result-part", body: body.subarray(6).toString("base64") });
+  h.emit({ op: "result-end" });
+  const result = await h.promise;
+  assert.equal(Buffer.from(result.body, "base64").toString(), body.toString());
+  assert.equal(result.status, 200);
+}
+{
+  const h = streamHarness();
+  const body = Buffer.from("compressed response ".repeat(100));
+  const gzip = gzipSync(body);
+  const split = Math.floor(gzip.length / 6) * 3;
+  h.emit({ op: "result-head", status: 200, encoding: "gzip" });
+  h.emit({ op: "result-part", body: gzip.subarray(0, split).toString("base64") });
+  h.emit({ op: "result-part", body: gzip.subarray(split).toString("base64") });
+  h.emit({ op: "result-end" });
+  assert.deepEqual(Buffer.from((await h.promise).body, "base64"), body);
+}
+{
+  const h = streamHarness(undefined, 80);
+  h.emit({ op: "result-head", status: 200 });
+  await pause(50);
+  h.emit({ op: "result-part", body: Buffer.from("abc").toString("base64") });
+  await pause(50);
+  h.emit({ op: "result-end" });
+  assert.equal(Buffer.from((await h.promise).body, "base64").toString(), "abc");
+}
+{
   const h = streamHarness(undefined, 15);
   h.emit({
     op: "http-head",
@@ -123,13 +156,13 @@ function streamHarness(signal, timeout = 100) {
   const abort = new AbortController();
   const h = streamHarness(abort.signal);
   abort.abort();
-  await assert.rejects(h.promise, /cancelled/);
+  await assert.rejects(h.promise, /canceled/);
   assert.equal(h.sent.at(-1).op, "http-cancel");
   assert.equal(h.active(), false);
 }
 {
   const h = streamHarness(undefined, 5);
-  await assert.rejects(h.promise, /timeout/);
+  await assert.rejects(h.promise, /timed out/);
   assert.equal(h.sent.at(-1).op, "http-cancel");
 }
 {
@@ -216,7 +249,7 @@ function portHarness(request, signal = new AbortController().signal) {
     abort.signal,
   );
   abort.abort();
-  await assert.rejects(pending.response, /Request cancelled/);
+  await assert.rejects(pending.response, /Request canceled/);
   await pause(10);
   assert.equal(aborted, true);
 }

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/coder/websocket"
 	"github.com/pion/webrtc/v4"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -63,8 +65,14 @@ func TestGenericHTTPAndWebSocket(t *testing.T) {
 }
 
 func TestLocalDirectCarriesHTTPWithoutRelay(t *testing.T) {
+	large := make([]byte, 512<<10)
+	rand.New(rand.NewSource(42)).Read(large)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
+		if r.URL.Path == "/large" {
+			w.Write(large)
+			return
+		}
 		w.Write([]byte("direct-http-ok"))
 	}))
 	defer srv.Close()
@@ -85,7 +93,7 @@ func TestLocalDirectCarriesHTTPWithoutRelay(t *testing.T) {
 	}
 	opened := make(chan struct{})
 	dc.OnOpen(func() { close(opened) })
-	results := make(chan Frame, 4)
+	results := make(chan Frame, 64)
 	var mu sync.Mutex
 	buffer := ""
 	dc.OnMessage(func(message webrtc.DataChannelMessage) {
@@ -140,5 +148,30 @@ func TestLocalDirectCarriesHTTPWithoutRelay(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("direct HTTP timeout")
+	}
+	payload, _ = json.Marshal(Frame{ID: 3, Op: "http", Path: "/large", Method: "GET", Stream: true, Chunked: true})
+	if err = dc.Send(append(payload, '\n')); err != nil {
+		t.Fatal(err)
+	}
+	var received []byte
+	deadline := time.After(10 * time.Second)
+	for {
+		select {
+		case f := <-results:
+			switch f.Op {
+			case "result-part":
+				received = append(received, f.Body...)
+			case "result-end":
+				if !bytes.Equal(received, large) {
+					t.Fatal("direct chunked response changed")
+				}
+				return
+			case "result-head":
+			default:
+				t.Fatalf("unexpected response: %+v", f)
+			}
+		case <-deadline:
+			t.Fatal("direct chunked HTTP timeout")
+		}
 	}
 }
